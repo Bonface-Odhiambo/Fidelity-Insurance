@@ -36,13 +36,13 @@ input, select, textarea {
 
 .ng-invalid.ng-touched:not(form) { border-color: #f87171 !important; }
 
-/* --- Plan Selector (Radio Buttons) --- */
+/* --- Plan Selector (Radio Cards) --- */
 .plan-selector {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
 
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
     grid-template-columns: repeat(3, 1fr);
   }
 
@@ -78,61 +78,35 @@ input, select, textarea {
   .plan-card {
     text-align: center;
     .plan-name {
+      font-size: 1.125rem;
       font-weight: 600;
       color: $fidelity-dark-text;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
     }
-    .plan-description {
-      font-size: 0.8rem;
-      color: $fidelity-medium-text;
-    }
-  }
-}
-
-/* --- Review Section Styles --- */
-.review-section {
-  h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: $fidelity-turquoise;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid $fidelity-border-gray;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .review-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 0.5rem 1rem;
-    font-size: 0.9rem;
-    
-    .label {
-      color: $fidelity-medium-text;
-    }
-    .value {
-      font-weight: 500;
-      color: $fidelity-dark-text;
+    .plan-premium {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $fidelity-turquoise;
+      .period {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $fidelity-medium-text;
+      }
     }
   }
 }
 
+/* --- Benefit Table in Summary --- */
 .benefit-table {
   width: 100%;
-  border-collapse: collapse;
   th, td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid $fidelity-border-gray;
-  }
-  th {
-    background-color: $fidelity-light-gray;
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  td {
+    padding: 0.5rem 0;
     font-size: 0.9rem;
+  }
+  td:last-child {
+    text-align: right;
+    font-weight: 500;
+    color: $fidelity-dark-text;
   }
 }
 
@@ -141,4 +115,4 @@ input, select, textarea {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.step-content { animation: fadeIn 0.4s ease-in-out; }
+.animate-fade-in { animation: fadeIn 0.4s ease-in-out; }

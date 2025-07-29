@@ -1,53 +1,52 @@
-// Define the only allowed colors as variables for easy use
-$pantone-light-blue: #04b2e1;
-$pantone-dark-blue: #21275c;
-$white: #ffffff;
+// Define Fidelity brand colors as SCSS variables
+$fidelity-turquoise: #037B7C;
+$fidelity-lime: #B8D87A;
+$fidelity-white: #ffffff;
+$fidelity-dark-text: #1f2937; // Tailwind gray-800
+$fidelity-medium-text: #6b7280; // Tailwind gray-500
+$fidelity-light-gray: #f9fafb; // Tailwind gray-50
+$fidelity-border-gray: #e5e7eb; // Tailwind gray-200
 
-// --- UTILITY CLASSES ---
-.bg-pantone-light-blue {
-  background-color: $pantone-light-blue !important;
-}
-.bg-pantone-dark-blue {
-  background-color: $pantone-dark-blue !important;
-}
-.text-pantone-light-blue {
-  color: $pantone-light-blue !important;
-}
-.text-pantone-dark-blue {
-  color: $pantone-dark-blue !important;
-}
+// --- UTILITY CLASSES (to override any lingering old classes) ---
+.bg-fidelity-turquoise { background-color: $fidelity-turquoise !important; }
+.bg-fidelity-lime { background-color: $fidelity-lime !important; }
+.text-fidelity-turquoise { color: $fidelity-turquoise !important; }
+.text-fidelity-lime { color: $fidelity-lime !important; }
 
 // --- COMPONENT STYLES ---
 
 .sidebar-bg {
-  background-color: $pantone-light-blue;
+  background-color: $fidelity-turquoise;
 }
 
 .nav-menu-item {
   .sidebar-nav-icon {
-    color: $pantone-dark-blue;
+    color: rgba($fidelity-white, 0.7);
     transition: color 0.2s ease-in-out;
   }
   
-  span.font-medium {
-    font-weight: 700; // 700 is equivalent to font-bold in Tailwind
+  &:hover {
+    .sidebar-nav-icon {
+      color: $fidelity-white;
+    }
   }
 }
 
 .nav-menu-item.active-menu-item {
-  background-color: rgba($pantone-dark-blue, 0.3) !important;
-  color: $white !important;
+  background-color: rgba($fidelity-white, 0.15) !important;
+  color: $fidelity-white !important;
+  font-weight: 600;
 
   .sidebar-nav-icon {
-    color: $white !important;
+    color: $fidelity-white !important;
   }
 }
 
 .stats-card {
-  background-color: $white;
+  background-color: $fidelity-white;
   padding: 1.5rem;
   border-radius: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid $fidelity-border-gray;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 
@@ -55,13 +54,30 @@ $white: #ffffff;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07);
     transform: translateY(-2px);
   }
+
+  h3 {
+    color: $fidelity-medium-text;
+  }
+
+  p {
+    color: $fidelity-turquoise;
+  }
+
+  // The highlight bar under the stat
+  .highlight-bar {
+    width: 3rem;
+    height: 4px;
+    background-color: $fidelity-lime;
+    border-radius: 99px;
+    margin-top: 0.75rem;
+  }
 }
 
 .policy-details-collapsible {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.5s ease-out;
-  background-color: #f9fafb;
+  background-color: $fidelity-light-gray;
   
   &.expanded {
     max-height: 1000px;
@@ -72,11 +88,11 @@ $white: #ffffff;
 .detail-section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: $pantone-light-blue;
+  color: $fidelity-turquoise;
   margin-top: 1.25rem;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid $fidelity-border-gray;
 }
 
 .policy-detail-grid {
@@ -89,42 +105,21 @@ $white: #ffffff;
   }
 }
 
-.detail-item {
-  display: flex;
-  flex-direction: column;
-}
+.detail-item { display: flex; flex-direction: column; }
+.detail-item-full { grid-column: 1 / -1; display: flex; flex-direction: column; margin-top: 0.75rem; }
+.detail-label { font-size: 0.75rem; color: $fidelity-medium-text; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-value { font-size: 0.9rem; color: $fidelity-dark-text; font-weight: 500; word-break: break-word; }
 
-.detail-item-full {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.75rem;
-}
-
-.detail-label {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detail-value {
-  font-size: 0.9rem;
-  color: $pantone-dark-blue;
-  font-weight: 500;
-  word-break: break-word;
-}
-
-// Styles for the custom Geminia Toast Message
-::ng-deep .geminia-toast-panel {
-  --mdc-snackbar-container-color: #{$pantone-dark-blue};
-  --mdc-snackbar-supporting-text-color: #{$white};
+// Styles for the custom Fidelity Toast Message
+::ng-deep .fidelity-toast-panel {
+  --mdc-snackbar-container-color: #{$fidelity-dark-text};
+  --mdc-snackbar-supporting-text-color: #{$fidelity-white};
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   font-weight: 500;
 
   .mat-mdc-button.mat-mdc-snack-bar-action {
-    color: #{$pantone-light-blue} !important;
+    color: #{$fidelity-lime} !important;
     font-weight: 700;
   }
 }

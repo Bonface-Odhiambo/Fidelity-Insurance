@@ -4,54 +4,17 @@
         <div class="mx-auto max-w-7xl px-6">
             <div class="flex items-center justify-between py-3">
                 <div class="flex items-center gap-4">
-                    <img
-                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROTKn0j9cVpA67LPdjPeYBR3KnWiwP1gsM3cS27rca-7m8BgvgUylY4uhBnOnVnXFx8Is&usqp=CAU"
-                        alt="Geminia Logo"
-                        class="h-10 w-auto"
-                    />
-                    <h1 class="text-xl font-semibold text-slate-800">
-                        Geminia Marine
-                    </h1>
+                    <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Logo" class="h-10 w-auto"/>
+                    <h1 class="text-xl font-semibold text-slate-800">Fidelity Marine</h1>
                 </div>
                 <div class="flex items-center gap-4">
                     <span class="text-sm font-medium">Demo User:</span>
-                    <select
-                        (change)="switchUser($event)"
-                        class="rounded-md border-gray-300 text-sm"
-                    >
-                        <option
-                            value="individual"
-                            [selected]="currentUser.type === 'individual'"
-                        >
-                            Individual
-                        </option>
-                        <option
-                            value="intermediary"
-                            [selected]="currentUser.type === 'intermediary'"
-                        >
-                            Intermediary
-                        </option>
+                    <select (change)="switchUser($event)" class="rounded-md border-gray-300 text-sm">
+                        <option value="individual" [selected]="currentUser.type === 'individual'">Individual</option>
+                        <option value="intermediary" [selected]="currentUser.type === 'intermediary'">Intermediary</option>
                     </select>
-                    <!-- Close button calls closeForm() which handles navigation based on login state -->
-                    <button
-                        (click)="closeForm()"
-                        class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50"
-                        title="Close"
-                    >
-                        <svg
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"
-                            ></path>
-                        </svg>
+                    <button (click)="closeForm()" class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50" title="Close">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Close
                     </button>
                 </div>
@@ -64,45 +27,15 @@
         <div class="mx-auto max-w-7xl">
             <!-- Progress Steps -->
             <div class="mb-8">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center">
-                        <div
-                            [class]="
-                                currentStep >= 1
-                                    ? 'flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 text-sm font-medium text-white'
-                                    : 'flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-gray-600'
-                            "
-                        >
-                            1
-                        </div>
-                        <span
-                            [class]="
-                                currentStep >= 1
-                                    ? 'ml-2 text-sm font-medium text-sky-500'
-                                    : 'ml-2 text-sm text-gray-500'
-                            "
-                            >Shipment Details</span
-                        >
+                <div class="flex items-center">
+                    <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 1" [class.text-gray-500]="currentStep < 1">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 1" [class.text-white]="currentStep >= 1" [class.bg-gray-300]="currentStep < 1">1</div>
+                        <span class="ml-2 text-sm font-medium">Shipment Details</span>
                     </div>
-                    <div class="h-px w-8 bg-gray-300"></div>
-                    <div class="flex items-center">
-                        <div
-                            [class]="
-                                currentStep >= 2
-                                    ? 'flex h-8 w-8 items-center justify-center rounded-full bg-sky-500 text-sm font-medium text-white'
-                                    : 'flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-gray-600'
-                            "
-                        >
-                            2
-                        </div>
-                        <span
-                            [class]="
-                                currentStep >= 2
-                                    ? 'ml-2 text-sm font-medium text-sky-500'
-                                    : 'ml-2 text-sm text-gray-500'
-                            "
-                            >Review & Pay</span
-                        >
+                    <div class="mx-4 h-px flex-1" [class.bg-fidelity-turquoise]="currentStep > 1" [class.bg-gray-300]="currentStep <= 1"></div>
+                    <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 2" [class.text-white]="currentStep >= 2" [class.bg-gray-300]="currentStep < 2">2</div>
+                        <span class="ml-2 text-sm font-medium">Review & Pay</span>
                     </div>
                 </div>
             </div>
@@ -112,441 +45,92 @@
                 <!-- Left Column: Forms -->
                 <div class="lg:col-span-2">
                     <!-- Step 1: Shipment Details Form -->
-                    <div
-                        *ngIf="currentStep === 1"
-                        class="step-content rounded-lg bg-white p-6 shadow-sm"
-                    >
-                        <h2 class="mb-2 text-2xl font-semibold text-gray-900">
-                            Marine Cargo Quotation Form
-                        </h2>
-                        <p class="mb-6 text-gray-600">
-                            Complete the details below for your marine cargo
-                            insurance quote
-                        </p>
-                        <form
-                            [formGroup]="quotationForm"
-                            (ngSubmit)="onSubmit()"
-                        >
-                            <fieldset
-                                [disabled]="
-                                    showHighRiskModal || showExportModal
-                                "
-                            >
+                    <div *ngIf="currentStep === 1" class="step-content rounded-lg bg-white p-6 shadow-sm">
+                        <h2 class="mb-2 text-2xl font-semibold text-gray-900">Marine Cargo Quotation</h2>
+                        <p class="mb-6 text-gray-600">Complete the details below for your marine cargo insurance quote.</p>
+                        <form [formGroup]="quotationForm" (ngSubmit)="onSubmit()">
+                            <fieldset [disabled]="showHighRiskModal || showExportModal">
                                 <div class="mb-6">
-                                    <label
-                                        class="mb-3 block text-sm font-medium text-gray-700"
-                                        >Cargo Type
-                                        <span class="text-red-500"
-                                            >*</span
-                                        ></label
-                                    >
+                                    <label class="mb-3 block text-sm font-medium text-gray-700">Cargo Type<span class="text-red-500">*</span></label>
                                     <div class="flex gap-4">
-                                        <label class="flex items-center"
-                                            ><input
-                                                type="radio"
-                                                formControlName="cargoType"
-                                                value="containerized"
-                                                class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            /><span
-                                                class="ml-2 text-sm text-gray-700"
-                                                >Containerized</span
-                                            ></label
-                                        ><label class="flex items-center"
-                                            ><input
-                                                type="radio"
-                                                formControlName="cargoType"
-                                                value="non-containerized"
-                                                class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            /><span
-                                                class="ml-2 text-sm text-gray-700"
-                                                >Non-Containerized</span
-                                            ></label
-                                        >
+                                        <label class="flex items-center"><input type="radio" formControlName="cargoType" value="containerized" class="h-4 w-4 border-gray-300 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-2 text-sm text-gray-700">Containerized</span></label>
+                                        <label class="flex items-center"><input type="radio" formControlName="cargoType" value="non-containerized" class="h-4 w-4 border-gray-300 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-2 text-sm text-gray-700">Non-Containerized</span></label>
                                     </div>
                                 </div>
-                                <div
-                                    class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2"
-                                >
+                                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Mode of Shipment
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><select
-                                            formControlName="modeOfShipment"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        >
-                                            <option value="">
-                                                Select mode
-                                            </option>
-                                            <option value="sea">Sea</option>
-                                            <option value="air">Air</option>
-                                        </select>
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Mode of Shipment<span class="text-red-500">*</span></label>
+                                        <select formControlName="modeOfShipment" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option value="">Select mode</option><option value="sea">Sea</option><option value="air">Air</option></select>
                                     </div>
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Trade Type
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><select
-                                            formControlName="tradeType"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        >
-                                            <option value="import">
-                                                Import
-                                            </option>
-                                            <option value="export">
-                                                Export
-                                            </option>
-                                        </select>
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Trade Type<span class="text-red-500">*</span></label>
+                                        <select formControlName="tradeType" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option value="import">Import</option><option value="export">Export</option></select>
                                     </div>
                                 </div>
-                                <div
-                                    class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2"
-                                >
+                                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Select Product
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        >
-                                        <input
-                                            type="text"
-                                            formControlName="marineProduct"
-                                            list="marine-products-list"
-                                            placeholder="Search for a product..."
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                        <datalist id="marine-products-list">
-                                            <option
-                                                *ngFor="
-                                                    let product of marineProducts
-                                                "
-                                                [value]="product.name"
-                                            ></option>
-                                        </datalist>
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Select Product<span class="text-red-500">*</span></label>
+                                        <input type="text" formControlName="marineProduct" list="marine-products-list" placeholder="Search for a product..." class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                                        <datalist id="marine-products-list"><option *ngFor="let product of marineProducts" [value]="product.name"></option></datalist>
                                     </div>
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Marine Cargo Type
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        >
-                                        <input
-                                            type="text"
-                                            formControlName="marineCargoType"
-                                            list="cargo-type-list"
-                                            placeholder="Search for a cargo type..."
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                        <datalist id="cargo-type-list">
-                                            <option
-                                                *ngFor="
-                                                    let type of marineCargoTypes
-                                                "
-                                                [value]="type"
-                                            ></option>
-                                        </datalist>
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Marine Cargo Type<span class="text-red-500">*</span></label>
+                                        <input type="text" formControlName="marineCargoType" list="cargo-type-list" placeholder="Search for a cargo type..." class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                                        <datalist id="cargo-type-list"><option *ngFor="let type of marineCargoTypes" [value]="type"></option></datalist>
                                     </div>
                                 </div>
-                                <div
-                                    class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2"
-                                >
+                                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Country of Origin
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        >
-                                        <input
-                                            type="text"
-                                            formControlName="origin"
-                                            placeholder="Search and select origin..."
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            list="all-countries-list"
-                                        />
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Country of Origin<span class="text-red-500">*</span></label>
+                                        <input type="text" formControlName="origin" placeholder="Search and select origin..." class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" list="all-countries-list"/>
                                     </div>
                                     <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Destination</label
-                                        >
-                                        <input
-                                            type="text"
-                                            formControlName="destination"
-                                            class="w-full rounded-md border border-gray-300 px-3 py-2"
-                                            readonly
-                                        />
+                                        <label class="mb-2 block text-sm font-medium text-gray-700">Destination</label>
+                                        <input type="text" formControlName="destination" class="w-full rounded-md border border-gray-300 px-3 py-2" readonly/>
                                     </div>
-                                    <datalist id="all-countries-list">
-                                        <option
-                                            *ngFor="
-                                                let country of allCountriesList
-                                            "
-                                            [value]="country"
-                                        ></option>
-                                    </datalist>
+                                    <datalist id="all-countries-list"><option *ngFor="let country of allCountriesList" [value]="country"></option></datalist>
                                 </div>
-                                <div
-                                    class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2"
-                                >
-                                    <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >UCR Number
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><input
-                                            type="text"
-                                            formControlName="ucrNumber"
-                                            placeholder="e.g., UCR2024001"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >IDF Number
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><input
-                                            type="text"
-                                            formControlName="idfNumber"
-                                            placeholder="e.g., E2300012345"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                    </div>
+                                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    <div><label class="mb-2 block text-sm font-medium text-gray-700">UCR Number<span class="text-red-500">*</span></label><input type="text" formControlName="ucrNumber" placeholder="e.g., UCR2024001" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                    <div><label class="mb-2 block text-sm font-medium text-gray-700">IDF Number<span class="text-red-500">*</span></label><input type="text" formControlName="idfNumber" placeholder="e.g., E2300012345" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                                 </div>
-                                <div
-                                    class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2"
-                                >
-                                    <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Cover start date
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><input
-                                            type="date"
-                                            formControlName="coverStartDate"
-                                            [min]="getToday()"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="mb-2 block text-sm font-medium text-gray-700"
-                                            >Sum Insured (KES)
-                                            <span class="text-red-500"
-                                                >*</span
-                                            ></label
-                                        ><input
-                                            type="number"
-                                            formControlName="sumInsured"
-                                            placeholder="2500000"
-                                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                        />
-                                    </div>
+                                <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    <div><label class="mb-2 block text-sm font-medium text-gray-700">Cover start date<span class="text-red-500">*</span></label><input type="date" formControlName="coverStartDate" [min]="getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                    <div><label class="mb-2 block text-sm font-medium text-gray-700">Sum Insured (KES)<span class="text-red-500">*</span></label><input type="number" formControlName="sumInsured" placeholder="2500000" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                                 </div>
-                                <div class="mb-6">
-                                    <label
-                                        class="mb-2 block text-sm font-medium text-gray-700"
-                                        >Description of Goods
-                                        <span class="text-red-500"
-                                            >*</span
-                                        ></label
-                                    ><textarea
-                                        formControlName="descriptionOfGoods"
-                                        rows="3"
-                                        placeholder="Describe the type of goods, their value, quantity, packaging details..."
-                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                    ></textarea>
-                                </div>
-                                <button
-                                    type="submit"
-                                    [disabled]="quotationForm.invalid"
-                                    class="btn-primary w-full rounded-md px-4 py-3 font-medium text-white transition-colors"
-                                >
-                                    Get Quote
-                                </button>
+                                <div class="mb-6"><label class="mb-2 block text-sm font-medium text-gray-700">Description of Goods<span class="text-red-500">*</span></label><textarea formControlName="descriptionOfGoods" rows="3" placeholder="Describe the type of goods, their value, quantity, packaging details..." class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"></textarea></div>
+                                <button type="submit" [disabled]="quotationForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium text-white transition-colors">Get Quote</button>
                             </fieldset>
                         </form>
                     </div>
 
                     <!-- Step 2: Quote Review Form -->
-                    <div
-                        *ngIf="currentStep === 2"
-                        class="step-content mx-auto max-w-4xl"
-                    >
+                    <div *ngIf="currentStep === 2" class="step-content mx-auto max-w-4xl">
                         <div class="rounded-lg bg-white p-8 shadow-sm">
-                            <h2
-                                class="mb-6 text-2xl font-semibold text-gray-900"
-                            >
-                                Review Your Quote & Provide Details
-                            </h2>
+                            <h2 class="mb-6 text-2xl font-semibold text-gray-900">Review Your Quote & Provide Details</h2>
                             <div class="mt-8 border-t pt-6">
-                                <h3
-                                    class="mb-4 text-xl font-semibold text-gray-800"
-                                >
-                                    Customer Information
-                                </h3>
-                                <p class="mb-4 text-sm text-gray-500">
-                                    This is the person purchasing the insurance
-                                    policy.
-                                </p>
+                                <h3 class="mb-4 text-xl font-semibold text-gray-800">Customer Information</h3>
+                                <p class="mb-4 text-sm text-gray-500">This is the person purchasing the insurance policy.</p>
                                 <form [formGroup]="clientDetailsForm">
-                                    <div
-                                        class="grid grid-cols-1 gap-6 md:grid-cols-2"
-                                    >
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >ID Number
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="text"
-                                                formControlName="idNumber"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >KRA PIN
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="text"
-                                                formControlName="kraPin"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >First Name
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="text"
-                                                formControlName="firstName"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >Last Name
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="text"
-                                                formControlName="lastName"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >Email Address
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="email"
-                                                formControlName="email"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="mb-2 block text-sm font-medium text-gray-700"
-                                                >Phone Number
-                                                <span class="text-red-500"
-                                                    >*</span
-                                                ></label
-                                            ><input
-                                                type="tel"
-                                                formControlName="phoneNumber"
-                                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                                            />
-                                        </div>
+                                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">ID Number<span class="text-red-500">*</span></label><input type="text" formControlName="idNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN<span class="text-red-500">*</span></label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">First Name<span class="text-red-500">*</span></label><input type="text" formControlName="firstName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">Last Name<span class="text-red-500">*</span></label><input type="text" formControlName="lastName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                                        <div><label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                                     </div>
                                     <div class="mt-6 space-y-4">
-                                        <label class="flex items-start"
-                                            ><input
-                                                type="checkbox"
-                                                formControlName="termsAndConditions"
-                                                class="mt-1 h-4 w-4"
-                                            /><span class="ml-3 text-sm"
-                                                >I agree to the
-                                                <a
-                                                    href="/terms"
-                                                    target="_blank"
-                                                    class="font-medium text-blue-600 hover:underline"
-                                                    >Terms & Conditions</a
-                                                >.*</span
-                                            ></label
-                                        ><label class="flex items-start"
-                                            ><input
-                                                type="checkbox"
-                                                formControlName="dataPrivacyConsent"
-                                                class="mt-1 h-4 w-4"
-                                            /><span class="ml-3 text-sm"
-                                                >I agree to the
-                                                <a
-                                                    href="/privacy"
-                                                    target="_blank"
-                                                    class="font-medium text-blue-600 hover:underline"
-                                                    >Data Privacy Policy</a
-                                                >.*</span
-                                            ></label
-                                        >
+                                        <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span></label>
+                                        <label class="flex items-start"><input type="checkbox" formControlName="dataPrivacyConsent" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/privacy" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Data Privacy Policy</a>.*</span></label>
                                     </div>
                                 </form>
                             </div>
                             <div class="mt-8 flex items-center justify-between">
-                                <button
-                                    (click)="goToStep(1)"
-                                    class="rounded-md border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
-                                >
-                                    Back to Edit
-                                </button>
+                                <button (click)="goToStep(1)" class="rounded-md border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50">Back to Edit</button>
                                 <div class="flex gap-4">
-                                    <button
-                                        (click)="downloadQuote()"
-                                        [disabled]="clientDetailsForm.invalid"
-                                        class="btn-primary rounded-md px-6 py-2 font-medium text-white transition-colors"
-                                    >
-                                        Download Quote
-                                    </button>
-                                    
-                                    <!-- Conditional "Proceed to Payment" button -->
-                                    <button
-                                        (click)="handlePayment()"
-                                        [disabled]="clientDetailsForm.invalid"
-                                        class="btn-primary rounded-md px-6 py-2 font-medium text-white transition-colors"
-                                    >
-                                        Proceed to Payment
-                                    </button>
+                                    <button (click)="downloadQuote()" [disabled]="clientDetailsForm.invalid" class="btn-primary rounded-md px-6 py-2 font-medium text-white transition-colors">Download Quote</button>
+                                    <button (click)="handlePayment()" [disabled]="clientDetailsForm.invalid" class="btn-primary rounded-md px-6 py-2 font-medium text-white transition-colors">Proceed to Payment</button>
                                 </div>
                             </div>
                         </div>
@@ -555,175 +139,24 @@
 
                 <!-- Right Column: Premium Summary -->
                 <div class="lg:col-span-1">
-                    <div
-                        class="sticky top-24 rounded-lg bg-white p-6 shadow-sm"
-                    >
-                        <h3 class="mb-2 text-lg font-semibold text-gray-900">
-                            Premium Summary
-                        </h3>
-                        <p
-                            class="mb-4 text-sm text-gray-600"
-                            *ngIf="currentStep === 1"
-                        >
-                            Calculation is shown in the next step
-                        </p>
-                        <p
-                            class="mb-4 text-sm text-gray-600"
-                            *ngIf="currentStep === 2"
-                        >
-                            Final calculation
-                        </p>
-
-                        <div
-                            *ngIf="currentStep === 1"
-                            class="rounded-lg bg-gray-50 p-4"
-                        >
-                            <p class="text-center text-gray-500">
-                                Complete the form to proceed
-                            </p>
-                        </div>
-
-                        <div
-                            *ngIf="
-                                currentStep === 2 &&
-                                premiumCalculation.basePremium
-                            "
-                        >
-                            <div class="rounded-lg bg-blue-50 p-4">
+                    <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
+                        <h3 class="mb-2 text-lg font-semibold text-gray-900">Premium Summary</h3>
+                        <p class="mb-4 text-sm text-gray-600" *ngIf="currentStep === 1">Calculation is shown in the next step</p>
+                        <p class="mb-4 text-sm text-gray-600" *ngIf="currentStep === 2">Final calculation</p>
+                        <div *ngIf="currentStep === 1" class="rounded-lg bg-gray-50 p-4"><p class="text-center text-gray-500">Complete the form to proceed</p></div>
+                        <div *ngIf="currentStep === 2 && premiumCalculation.basePremium">
+                            <div class="rounded-lg bg-fidelity-turquoise/10 p-4">
                                 <div class="space-y-3 text-sm">
-                                    <div
-                                        *ngIf="importerDetails.name"
-                                        class="mb-3 space-y-3 border-b pb-3"
-                                    >
-                                        <h4 class="font-bold text-gray-800">
-                                            Importer Details
-                                        </h4>
-                                        <div
-                                            class="flex items-center justify-between"
-                                        >
-                                            <span>Importer Name</span
-                                            ><span
-                                                class="text-right font-medium"
-                                                >{{
-                                                    importerDetails.name
-                                                }}</span
-                                            >
-                                        </div>
-                                        <div
-                                            class="flex items-center justify-between"
-                                        >
-                                            <span>Importer KRA PIN</span
-                                            ><span class="font-medium">{{
-                                                importerDetails.kraPin
-                                            }}</span>
-                                        </div>
-                                    </div>
-
-                                    <h4 class="font-bold text-gray-800">
-                                        Premium Calculation
-                                    </h4>
-                                    <div
-                                        class="flex items-center justify-between font-semibold"
-                                    >
-                                        <span>Sum Insured</span
-                                        ><span
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                quotationForm.get('sumInsured')
-                                                    ?.value | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <span>Base Premium</span
-                                        ><span
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                premiumCalculation.basePremium
-                                                    | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-
-                                    <div
-                                        *ngIf="
-                                            currentUser.type ===
-                                                'intermediary' &&
-                                            premiumCalculation.commission > 0
-                                        "
-                                        class="flex items-center justify-between text-green-600"
-                                    >
-                                        <span class="font-semibold"
-                                            >Commission (10%)</span
-                                        >
-                                        <span class="font-semibold"
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                premiumCalculation.commission
-                                                    | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-
+                                    <div *ngIf="importerDetails.name" class="mb-3 space-y-3 border-b pb-3"><h4 class="font-bold text-gray-800">Importer Details</h4><div class="flex items-center justify-between"><span>Importer Name</span><span class="text-right font-medium">{{ importerDetails.name }}</span></div><div class="flex items-center justify-between"><span>Importer KRA PIN</span><span class="font-medium">{{ importerDetails.kraPin }}</span></div></div>
+                                    <h4 class="font-bold text-gray-800">Premium Calculation</h4>
+                                    <div class="flex items-center justify-between font-semibold"><span>Sum Insured</span><span>{{ premiumCalculation.currency }} {{ quotationForm.get('sumInsured')?.value | number: '1.2-2' }}</span></div>
+                                    <div class="flex items-center justify-between"><span>Base Premium</span><span>{{ premiumCalculation.currency }} {{ premiumCalculation.basePremium | number: '1.2-2' }}</span></div>
+                                    <div *ngIf="currentUser.type === 'intermediary' && premiumCalculation.commission > 0" class="flex items-center justify-between text-green-600"><span class="font-semibold">Commission (10%)</span><span class="font-semibold">{{ premiumCalculation.currency }} {{ premiumCalculation.commission | number: '1.2-2' }}</span></div>
                                     <div class="mt-2 border-t pt-2"></div>
-
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <!-- CORRECTED: Changed label to be more descriptive of the new calculation -->
-                                        <span>PHCF (5% of Cargo Value)</span
-                                        ><span
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                premiumCalculation.phcf
-                                                    | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <span>Training Levy (0.25%)</span
-                                        ><span
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                premiumCalculation.trainingLevy
-                                                    | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <span>Stamp Duty</span
-                                        ><span
-                                            >{{ premiumCalculation.currency }}
-                                            {{
-                                                premiumCalculation.stampDuty
-                                                    | number: '1.2-2'
-                                            }}</span
-                                        >
-                                    </div>
-                                    <div class="mt-2 border-t pt-2">
-                                        <div
-                                            class="flex items-center justify-between"
-                                        >
-                                            <span class="text-lg font-semibold"
-                                                >Total Payable</span
-                                            ><span
-                                                class="text-xl font-bold text-blue-600"
-                                                >{{
-                                                    premiumCalculation.currency
-                                                }}
-                                                {{
-                                                    premiumCalculation.totalPayable
-                                                        | number: '1.2-2'
-                                                }}</span
-                                            >
-                                        </div>
-                                    </div>
+                                    <div class="flex items-center justify-between"><span>PHCF (5% of Cargo Value)</span><span>{{ premiumCalculation.currency }} {{ premiumCalculation.phcf | number: '1.2-2' }}</span></div>
+                                    <div class="flex items-center justify-between"><span>Training Levy (0.25%)</span><span>{{ premiumCalculation.currency }} {{ premiumCalculation.trainingLevy | number: '1.2-2' }}</span></div>
+                                    <div class="flex items-center justify-between"><span>Stamp Duty</span><span>{{ premiumCalculation.currency }} {{ premiumCalculation.stampDuty | number: '1.2-2' }}</span></div>
+                                    <div class="mt-2 border-t pt-2"><div class="flex items-center justify-between"><span class="text-lg font-semibold">Total Payable</span><span class="text-xl font-bold text-fidelity-turquoise">{{ premiumCalculation.currency }} {{ premiumCalculation.totalPayable | number: '1.2-2' }}</span></div></div>
                                 </div>
                             </div>
                         </div>
@@ -734,252 +167,35 @@
     </div>
 
     <!-- MODAL (Shared structure for Export/High-Risk) -->
-    <div
-        *ngIf="showExportModal || showHighRiskModal"
-        (click)="closeAllModals()"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4"
-    >
-        <div
-            (click)="$event.stopPropagation()"
-            class="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
-        >
+    <div *ngIf="showExportModal || showHighRiskModal" (click)="closeAllModals()" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+        <div (click)="$event.stopPropagation()" class="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-1 shadow-xl">
             <div class="p-7">
-                <h2 class="mb-4 text-2xl font-bold">
-                    {{
-                        showExportModal
-                            ? 'Export Shipment Details'
-                            : 'High-Risk Shipment Details'
-                    }}
-                </h2>
-                <p class="mb-6 text-gray-600">
-                    {{
-                        showExportModal
-                            ? 'Please provide the following details for your export request.'
-                            : 'Shipments from this origin require manual underwriting. Please provide your details to proceed.'
-                    }}
-                </p>
-                <form
-                    [formGroup]="
-                        showExportModal
-                            ? exportRequestForm
-                            : highRiskRequestForm
-                    "
-                    (ngSubmit)="
-                        showExportModal
-                            ? onExportRequestSubmit()
-                            : onHighRiskRequestSubmit()
-                    "
-                >
+                <h2 class="mb-4 text-2xl font-bold">{{ showExportModal ? 'Export Shipment Details' : 'High-Risk Shipment Details' }}</h2>
+                <p class="mb-6 text-gray-600">{{ showExportModal ? 'Please provide the following details for your export request.' : 'Shipments from this origin require manual underwriting. Please provide your details to proceed.' }}</p>
+                <form [formGroup]="showExportModal ? exportRequestForm : highRiskRequestForm" (ngSubmit)="showExportModal ? onExportRequestSubmit() : onHighRiskRequestSubmit()">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >KRA PIN
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="kraPin"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >First Name
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="firstName"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Last Name
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="lastName"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Email Address
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="email"
-                                formControlName="email"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Phone Number
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="tel"
-                                formControlName="phoneNumber"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Select Product
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="marineProduct"
-                                list="marine-products-list-modal"
-                                placeholder="Search for a product..."
-                                class="w-full rounded-md border bg-white px-3 py-2"
-                            /><datalist id="marine-products-list-modal">
-                                <option
-                                    *ngFor="let product of marineProducts"
-                                    [value]="product.name"
-                                ></option>
-                            </datalist>
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Marine Cargo Type
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="marineCargoType"
-                                list="cargo-type-list-modal"
-                                placeholder="Search for a cargo type..."
-                                class="w-full rounded-md border bg-white px-3 py-2"
-                            /><datalist id="cargo-type-list-modal">
-                                <option
-                                    *ngFor="let type of marineCargoTypes"
-                                    [value]="type"
-                                ></option>
-                            </datalist>
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >IDF Number
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="idfNumber"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >UCR Number
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="ucrNumber"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Country of Origin
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="originCountry"
-                                class="w-full rounded-md border bg-white px-3 py-2"
-                                list="all-countries-modal-list"
-                            />
-                        </div>
-                        <div>
-                            <label class="mb-1 block text-sm font-medium"
-                                >Destination Country
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="text"
-                                formControlName="destinationCountry"
-                                class="w-full rounded-md bg-white px-3 py-2"
-                                list="all-countries-modal-list"
-                                placeholder="Search and select a country..."
-                            />
-                        </div>
-                        <datalist id="all-countries-modal-list">
-                            <option
-                                *ngFor="let country of allCountriesList"
-                                [value]="country"
-                            ></option>
-                        </datalist>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Shipment Date
-                                <span class="text-red-500">*</span></label
-                            ><input
-                                type="date"
-                                formControlName="shipmentDate"
-                                [min]="getToday()"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            />
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Goods Description (Max 100 words)
-                                <span class="text-red-500">*</span></label
-                            ><textarea
-                                formControlName="goodsDescription"
-                                rows="3"
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
-                            ></textarea>
-                        </div>
+                        <div><label class="mb-1 block text-sm font-medium">KRA PIN<span class="text-red-500">*</span></label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">First Name<span class="text-red-500">*</span></label><input type="text" formControlName="firstName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">Last Name<span class="text-red-500">*</span></label><input type="text" formControlName="lastName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div class="md:col-span-2"><label class="mb-1 block text-sm font-medium">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">Select Product<span class="text-red-500">*</span></label><input type="text" formControlName="marineProduct" list="marine-products-list-modal" placeholder="Search for a product..." class="w-full rounded-md border bg-white px-3 py-2"/><datalist id="marine-products-list-modal"><option *ngFor="let product of marineProducts" [value]="product.name"></option></datalist></div>
+                        <div><label class="mb-1 block text-sm font-medium">Marine Cargo Type<span class="text-red-500">*</span></label><input type="text" formControlName="marineCargoType" list="cargo-type-list-modal" placeholder="Search for a cargo type..." class="w-full rounded-md border bg-white px-3 py-2"/><datalist id="cargo-type-list-modal"><option *ngFor="let type of marineCargoTypes" [value]="type"></option></datalist></div>
+                        <div><label class="mb-1 block text-sm font-medium">IDF Number<span class="text-red-500">*</span></label><input type="text" formControlName="idfNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">UCR Number<span class="text-red-500">*</span></label><input type="text" formControlName="ucrNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">Country of Origin<span class="text-red-500">*</span></label><input type="text" formControlName="originCountry" class="w-full rounded-md border bg-white px-3 py-2" list="all-countries-modal-list"/></div>
+                        <div><label class="mb-1 block text-sm font-medium">Destination Country<span class="text-red-500">*</span></label><input type="text" formControlName="destinationCountry" class="w-full rounded-md bg-white px-3 py-2" list="all-countries-modal-list" placeholder="Search and select a country..."/></div>
+                        <datalist id="all-countries-modal-list"><option *ngFor="let country of allCountriesList" [value]="country"></option></datalist>
+                        <div class="md:col-span-2"><label class="mb-1 block text-sm font-medium">Shipment Date<span class="text-red-500">*</span></label><input type="date" formControlName="shipmentDate" [min]="getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                        <div class="md:col-span-2"><label class="mb-1 block text-sm font-medium">Goods Description (Max 100 words)<span class="text-red-500">*</span></label><textarea formControlName="goodsDescription" rows="3" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"></textarea></div>
                     </div>
                     <div class="mt-6 space-y-4">
-                        <label class="flex items-start"
-                            ><input
-                                type="checkbox"
-                                formControlName="termsAndConditions"
-                                class="mt-1 h-4 w-4"
-                            /><span class="ml-3 text-sm"
-                                >I agree to the
-                                <a
-                                    href="/terms"
-                                    target="_blank"
-                                    class="font-medium text-blue-600 hover:underline"
-                                    >Terms and Conditions</a
-                                >.*</span
-                            ></label
-                        ><label class="flex items-start"
-                            ><input
-                                type="checkbox"
-                                formControlName="dataPrivacyConsent"
-                                class="mt-1 h-4 w-4"
-                            /><span class="ml-3 text-sm"
-                                >I agree to the
-                                <a
-                                    href="/privacy"
-                                    target="_blank"
-                                    class="font-medium text-blue-600 hover:underline"
-                                    >Data Privacy Policy</a
-                                >.*</span
-                            ></label
-                        >
+                        <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms and Conditions</a>.*</span></label>
+                        <label class="flex items-start"><input type="checkbox" formControlName="dataPrivacyConsent" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/privacy" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Data Privacy Policy</a>.*</span></label>
                     </div>
                     <div class="mt-8 flex justify-end gap-4 border-t pt-6">
-                        <button
-                            type="button"
-                            (click)="closeAllModals()"
-                            class="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            [disabled]="
-                                showExportModal
-                                    ? exportRequestForm.invalid
-                                    : highRiskRequestForm.invalid
-                            "
-                            class="btn-primary rounded-md px-4 py-2 font-medium text-white transition-colors"
-                        >
-                            Submit Request
-                        </button>
+                        <button type="button" (click)="closeAllModals()" class="rounded-md border border-gray-300 px-4 py-2 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" [disabled]="showExportModal ? exportRequestForm.invalid : highRiskRequestForm.invalid" class="btn-primary rounded-md px-4 py-2 font-medium text-white transition-colors">Submit Request</button>
                     </div>
                 </form>
             </div>
@@ -987,15 +203,7 @@
     </div>
 
     <!-- Universal Toast Message -->
-    <div
-        *ngIf="toastMessage"
-        class="fixed bottom-5 right-5 rounded-lg px-6 py-3 text-white shadow-lg"
-        [ngClass]="{
-            'bg-green-500': toastType === 'success',
-            'toast-info': toastType === 'info',
-            'bg-red-500': toastType === 'error'
-        }"
-    >
+    <div *ngIf="toastMessage" class="fixed bottom-5 right-5 rounded-lg px-6 py-3 text-white shadow-lg" [ngClass]="{ 'bg-green-500': toastType === 'success', 'toast-info': toastType === 'info', 'bg-red-500': toastType === 'error' }">
         {{ toastMessage }}
     </div>
 </div>

@@ -1,535 +1,196 @@
-import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component, Inject, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTabsModule } from '@angular/material/tabs';
 
-// --- ENUMS ---
-export enum TravelProductType {
-  TRAVEL_PROTECT = 'Travel Protect',
-  STUDENT = 'Student',
-  PILGRIMAGE = 'Pilgrimage',
-  CORPORATE = 'Corporate',
-  DOMESTIC = 'Domestic',
-  INBOUND = 'Inbound'
-}
+// --- Data Structures ---
+interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; }
+interface Benefit { name: string; limit: string; }
+interface Premium { baseRate: number; subtotal: number; groupDiscount: number; ageSurcharge: number; winterSportsSurcharge: number; totalPayable: number; durationDays: number; }
+interface MpesaPayment { amount: number; phoneNumber: string; reference: string; description: string; }
+export interface PaymentResult { success: boolean; }
 
-export enum QuoteStep {
-  PRODUCT_SELECTION = 1,
-  PLAN_SELECTION = 2,
-  TRAVELER_DETAILS = 3,
-  REVIEW_PAYMENT = 4
-}
-
-// --- INTERFACES ---
-export interface TravelProduct {
-  type: TravelProductType;
-  title: string;
-  description: string;
-  icon: string;
-  features: string[];
-  startingPrice: number;
-  currency: string;
-  popular?: boolean;
-  plans: TravelPlan[];
-}
-
-export interface TravelPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  duration: string;
-  benefits: { [key: string]: string };
-  popular?: boolean;
-  color: string;
-}
-
-export interface TravelerDetails {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  passportNumber: string;
-  nationality: string;
-  placeOfOrigin: string;
-  destination: string;
-  travelPurpose: string;
-  departureDate: string;
-  returnDate: string;
-  emergencyContact: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-}
-
-export interface ValidationErrors {
-  [key: string]: string[];
+// --- Reusable Payment Modal (Already branded) ---
+@Component({
+  selector: 'app-fidelity-payment-modal',
+  standalone: true,
+  imports: [ CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatProgressSpinnerModule, MatTabsModule ],
+  template: `<div class="modal-header"><h1 mat-dialog-title class="modal-title">Complete Your Payment</h1><button mat-icon-button (click)="closeDialog()" class="close-button" aria-label="Close dialog"><mat-icon>close</mat-icon></button></div><mat-dialog-content class="modal-content"><p class="modal-subtitle">Pay KES {{ data.amount | number: '1.2-2' }} for {{ data.description }}</p><mat-tab-group animationDuration="300ms" mat-stretch-tabs="true" class="payment-tabs"><mat-tab><ng-template mat-tab-label><div class="tab-label-content"><mat-icon>phone_iphone</mat-icon><span>M-PESA</span></div></ng-template><div class="tab-panel-content"><div class="sub-options"><button (click)="mpesaSubMethod = 'stk'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'stk'"><mat-icon>tap_and_play</mat-icon><span>STK Push</span></button><button (click)="mpesaSubMethod = 'paybill'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'paybill'"><mat-icon>article</mat-icon><span>Use Paybill</span></button></div><div *ngIf="mpesaSubMethod === 'stk'" class="option-view animate-fade-in"><p class="instruction-text">Enter your M-PESA phone number to receive a payment prompt.</p><form [formGroup]="stkForm"><mat-form-field appearance="outline"><mat-label>Phone Number</mat-label><input matInput formControlName="phoneNumber" placeholder="e.g., 0712345678" [disabled]="isProcessingStk"><mat-icon matSuffix>phone_iphone</mat-icon></mat-form-field></form><button mat-raised-button class="action-button" (click)="processStkPush()" [disabled]="stkForm.invalid || isProcessingStk"><mat-spinner *ngIf="isProcessingStk" diameter="24"></mat-spinner><span *ngIf="!isProcessingStk">Pay KES {{ data.amount | number: '1.0-0' }}</span></button></div><div *ngIf="mpesaSubMethod === 'paybill'" class="option-view animate-fade-in"><p class="instruction-text">Use the details below on your M-PESA App to complete payment.</p><div class="paybill-details"><div class="detail-item"><span class="label">Paybill Number:</span><span class="value">853338</span></div><div class="detail-item"><span class="label">Account Number:</span><span class="value account-number">{{ data.reference }}</span></div></div><button mat-raised-button class="action-button" (click)="verifyPaybillPayment()" [disabled]="isVerifyingPaybill"><mat-spinner *ngIf="isVerifyingPaybill" diameter="24"></mat-spinner><span *ngIf="!isVerifyingPaybill">Verify Payment</span></button></div></div></mat-tab><mat-tab><ng-template mat-tab-label><div class="tab-label-content"><mat-icon>credit_card</mat-icon><span>Credit/Debit Card</span></div></ng-template><div class="tab-panel-content animate-fade-in"><div class="card-redirect-info"><p class="instruction-text">You will be redirected to pay via our reliable and trusted payment partner.</p><button mat-raised-button class="action-button" (click)="redirectToCardGateway()" [disabled]="isRedirectingToCard"><mat-spinner *ngIf="isRedirectingToCard" diameter="24"></mat-spinner><span *ngIf="!isRedirectingToCard">Pay Using Credit/Debit Card</span></button></div></div></mat-tab></mat-tab-group></mat-dialog-content>`,
+  styles: [`:host { --fidelity-turquoise: #037B7C; --fidelity-lime: #B8D87A; --fidelity-white: #ffffff; --light-gray: #f8f9fa; --medium-gray: #e9ecef; --dark-gray: #495057; --dark-text: #1f2937; } .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 12px 24px; background-color: var(--fidelity-turquoise); color: var(--fidelity-white); } .modal-title { font-size: 20px; font-weight: 600; margin: 0; color: var(--fidelity-white); } .close-button { color: var(--fidelity-white); } .modal-content { padding: 24px !important; } .modal-subtitle { font-size: 14px; color: var(--dark-gray); margin-bottom: 20px; text-align: center; } .payment-tabs .tab-label-content { display: flex; align-items: center; gap: 8px; height: 60px; } .tab-panel-content { padding-top: 24px; } .sub-options { display: flex; gap: 12px; margin-bottom: 24px; border: 1px solid var(--medium-gray); border-radius: 12px; padding: 6px; background-color: var(--light-gray); } .sub-option-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 8px; border: none; background-color: transparent; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--dark-gray); } .sub-option-btn.active { background-color: var(--fidelity-turquoise); color: var(--fidelity-white); } .instruction-text { text-align: center; color: var(--dark-gray); font-size: 15px; margin-bottom: 20px; } mat-form-field { width: 100%; } .action-button { width: 100%; height: 52px; border-radius: 12px; background-color: var(--fidelity-turquoise) !important; color: var(--fidelity-white) !important; font-size: 16px; font-weight: 700; transition: all 0.3s ease; } .action-button:hover:not(:disabled) { background-color: var(--fidelity-lime) !important; color: var(--dark-text) !important; transform: translateY(-2px); } .action-button:disabled { background-color: #a0a3c2 !important; color: rgba(255, 255, 255, 0.7) !important; cursor: not-allowed; } .paybill-details { background: var(--light-gray); border: 1px dashed var(--medium-gray); border-radius: 12px; padding: 20px; margin-bottom: 24px; } .detail-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; padding: 12px 0; } .detail-item + .detail-item { border-top: 1px solid var(--medium-gray); } .detail-item .label { color: var(--dark-gray); } .detail-item .value { font-weight: 700; } .detail-item .account-number { font-family: 'Courier New', monospace; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 6px; } .card-redirect-info { text-align: center; } .animate-fade-in { animation: fadeIn 0.4s ease-in-out; } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } ::ng-deep .payment-tabs .mat-mdc-tab-header { --mat-tab-header-inactive-ripple-color: rgba(3, 123, 124, 0.1); --mat-tab-header-active-ripple-color: rgba(3, 123, 124, 0.2); } ::ng-deep .payment-tabs .mdc-tab__text-label { color: var(--dark-gray); font-weight: 600; } ::ng-deep .payment-tabs .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label { color: var(--fidelity-turquoise); } ::ng-deep .payment-tabs .mat-mdc-tab-indicator-bar { background-color: var(--fidelity-turquoise) !important; } `]
+})
+export class MpesaPaymentModalComponent {
+    stkForm: FormGroup;
+    selectedPaymentMethod: 'mpesa' | 'card' = 'mpesa';
+    mpesaSubMethod: 'stk' | 'paybill' = 'stk';
+    isProcessingStk = false; isVerifyingPaybill = false; isRedirectingToCard = false;
+    constructor(private fb: FormBuilder, public dialogRef: MatDialogRef<MpesaPaymentModalComponent>, @Inject(MAT_DIALOG_DATA) public data: MpesaPayment) { this.stkForm = this.fb.group({ phoneNumber: [data.phoneNumber || '', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], }); }
+    closeDialog(result: PaymentResult | null = null): void { this.dialogRef.close(result); }
+    processStkPush(): void { if (this.stkForm.invalid) return; this.isProcessingStk = true; setTimeout(() => { this.isProcessingStk = false; this.closeDialog({ success: true }); }, 3000); }
+    verifyPaybillPayment(): void { this.isVerifyingPaybill = true; setTimeout(() => { this.isVerifyingPaybill = false; this.closeDialog({ success: true }); }, 3500); }
+    redirectToCardGateway(): void { this.isRedirectingToCard = true; setTimeout(() => { this.isRedirectingToCard = false; this.closeDialog({ success: true }); }, 2000); }
 }
 
 @Component({
   selector: 'app-travel-quote',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [ CommonModule, ReactiveFormsModule, MatDialogModule, MpesaPaymentModalComponent, MatIconModule ],
   templateUrl: './travel-quote.component.html',
   styleUrls: ['./travel-quote.component.scss'],
 })
 export class TravelQuoteComponent implements OnInit {
-  // --- ENUMS FOR TEMPLATE ---
-  readonly TravelProductType = TravelProductType;
-  readonly QuoteStep = QuoteStep;
-
-  // --- STATE MANAGEMENT ---
-  state = {
-    currentStep: QuoteStep.PRODUCT_SELECTION,
-    selectedProduct: null as TravelProduct | null,
-    selectedPlan: null as TravelPlan | null,
-    isLoading: false,
-    hasErrors: false,
-    showPaymentModal: false,
-    showBenefitsModal: false,
-    isLoggedIn: false 
-  };
+  currentStep: number = 1;
+  quotationForm: FormGroup;
+  travelerDetailsForm: FormGroup;
+  destinationRegions = ['Africa', 'Asia', 'Europe', 'Worldwide'];
+  premium: Premium = this.resetPremium();
+  selectedPlanDetails: TravelPlan | null = null;
   
-  planForModal: TravelPlan | null = null;
-
-  // --- HOVER STATE ---
-  hoveredBenefit: string | null = null;
-  tooltipX = 0;
-  tooltipY = 0;
-
-  // --- TRAVELER DETAILS ---
-  travelerDetails: TravelerDetails = {
-    firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', passportNumber: '', nationality: 'Kenya', placeOfOrigin: 'Kenya', destination: '', travelPurpose: '', departureDate: '', returnDate: '',
-    emergencyContact: { name: '', phone: '', relationship: '' }
-  };
-  
-  // --- DATE VALIDATION ---
-  minDepartureDate: string;
-  maxDepartureDate: string;
-  minReturnDate: string;
-
-  // --- VALIDATION ---
-  validationErrors: ValidationErrors = {};
-
-  // --- SEARCHABLE DROPDOWN PROPERTIES ---
-  destinationSearch: string = '';
-  showDestinationDropdown: boolean = false;
-  filteredDestinationCountries: string[] = [];
-
-  // --- DATA ---
-  travelProducts: TravelProduct[] = [
-    {
-      type: TravelProductType.TRAVEL_PROTECT,
-      title: 'Travel Protect',
-      description: 'Comprehensive international travel insurance with medical coverage, emergency assistance, and trip protection. Premiums vary based on the duration of your trip.',
-      icon: 'globe',
-      features: [],
-      startingPrice: 1274.94,
-      currency: 'KES',
-      popular: true,
-      plans: [
-        {
-          id: 'africa', name: 'Africa', description: 'Value offer for travelers within Africa or Asia.', price: 1274.94, currency: 'KES', duration: 'Up to 4 days', color: '#04b2e1',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$15,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$15,000', 'Emergency Dental Care': '$100 (Excess $25)', 'Repatriation of Mortal Remains': '$10,000', 'Repatriation of Family Member': '$1,500', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$1,500 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$7,000' }
-        },
-        {
-          id: 'asia', name: 'Asia', description: 'Value offer for travelers within Asia or Africa.', price: 1274.94, currency: 'KES', duration: 'Up to 4 days', color: '#04b2e1',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$15,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$15,000', 'Emergency Dental Care': '$100 (Excess $25)', 'Repatriation of Mortal Remains': '$10,000', 'Repatriation of Family Member': '$1,500', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$1,500 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$7,000' }
-        },
-        {
-          id: 'europe_basic', name: 'Europe Basic', description: 'Value offer for travelers to Europe with limits in Euros.', price: 1518.49, currency: 'KES', duration: 'Up to 4 days', color: '#21275c',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '36,000 €', 'Medical Excess': '30€ (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '80€ per day - max. 14 days', 'Emergency Medical Evacuation': '36,000 €', 'Emergency Dental Care': '100€ (Excess 25€)', 'Repatriation of Mortal Remains': '10,000 €', 'Repatriation of Family Member': '1,500 €', 'Loss of Passport/Driving License/ID': '500 €', 'Compensation for In-flight Loss of Baggage': '1,500 € (Excess 50€)', 'Luggage Delay': '250€ (Excess 4 hours)', 'Accidental Death (Public Transport)': '10,000 €' }
-        },
-        {
-          id: 'worldwide_basic', name: 'Worldwide Basic', description: 'Basic worldwide coverage with comprehensive protection.', price: 2566.97, currency: 'KES', duration: 'Up to 4 days', color: '#04b2e1', popular: true,
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$125,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$40,000', 'Emergency Dental Care': '$500 (Excess $25)', 'Repatriation of Mortal Remains': '$10,000', 'Compassionate Emergency Visit': 'Return tickets in Economy Class & $100/day max 10 days', 'Daily Hospital Cash Benefit': '$35/day max $350', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$1,500 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$200,000', 'Personal Civil Liability': '$300,000', 'Advance of Bail Bond': '$3,000', 'Legal Defense Abroad': '$3,500', 'Journey Cancellation': '$2,000', 'Journey Curtailment': '$2,000', 'Hijack in means of public transport': '$50 per day max $5,000' }
-        },
-        {
-          id: 'worldwide_plus', name: 'Worldwide Plus', description: 'Comprehensive worldwide travel with enhanced benefits.', price: 2902.07, currency: 'KES', duration: 'Up to 4 days', color: '#21275c',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$250,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$75,000', 'Emergency Dental Care': '$650 (Excess $25)', 'Repatriation of Mortal Remains': '$15,000', 'Compassionate Emergency Visit': 'Return tickets in Economy Class & $200/day max 10 days', 'Daily Hospital Cash Benefit': '$50/day max $500', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$2,000 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$200,000', 'Personal Civil Liability': '$300,000', 'Advance of Bail Bond': '$10,000', 'Legal Defense Abroad': '$5,000', 'Journey Cancellation': '$3,000', 'Journey Curtailment': '$2,500', 'Hijack in means of public transport': '$100 per day max $7,500' }
-        },
-        {
-          id: 'worldwide_extra', name: 'Worldwide Extra', description: 'Extra protection whilst traveling worldwide.', price: 3271.71, currency: 'KES', duration: 'Up to 4 days', color: '#04b2e1',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$500,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$150,000', 'Emergency Dental Care': '$650 (Excess $25)', 'Repatriation of Mortal Remains': '$15,000', 'Compassionate Emergency Visit': 'Return tickets in Economy Class & $200/day max 10 days', 'Daily Hospital Cash Benefit': '$50/day max $500', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$2,000 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$300,000', 'Personal Civil Liability': '$300,000', 'Advance of Bail Bond': '$10,000', 'Legal Defense Abroad': '$5,000', 'Journey Cancellation': '$3,000', 'Journey Curtailment': '$2,500', 'Hijack in means of public transport': '$100 per day max $7,500' }
-        },
-        {
-          id: 'europe_plus', name: 'Europe Plus', description: 'Value offer for travelers to Europe with enhanced coverage.', price: 2109.23, currency: 'KES', duration: 'Up to 4 days', color: '#21275c',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': '$80,000', 'Medical Excess': '$30 (Out-Patient)', 'Compulsory Quarantine (COVID-19)': '$80 per day - max. 14 days', 'Emergency Medical Evacuation': '$80,000', 'Emergency Dental Care': '$450 (Excess $25)', 'Repatriation of Mortal Remains': '$10,000', 'Compassionate Emergency Visit': 'Return tickets in Economy Class & $100/day max 10 days', 'Daily Hospital Cash Benefit': '$35/day max $350', 'Loss of Passport/Driving License/ID': '$500', 'Compensation for In-flight Loss of Baggage': '$1,500 (Excess $50)', 'Luggage Delay': '$250 (Excess 4 hours)', 'Accidental Death (Public Transport)': '$75,000', 'Personal Civil Liability': '$100,000', 'Advance of Bail Bond': '$3,000', 'Legal Defense Abroad': '$3,500', 'Journey Cancellation': '$1,500', 'Journey Curtailment': '$1,500', 'Hijack in means of public transport': '$50 per day max $5,000' }
-        }
-      ]
-    },
-    {
-      type: TravelProductType.STUDENT,
-      title: 'Student Travel',
-      description: 'Specially designed long-term travel insurance for students studying abroad. Premiums are available for 6, 9, and 12-month periods.',
-      icon: 'student',
-      features: [],
-      startingPrice: 49910.94,
-      currency: 'KES',
-      plans: [
-        {
-          id: 'students_classic', name: 'Students Classic', description: 'Essential coverage for students abroad.', price: 49910.94, currency: 'KES', duration: '6 months maximum (180 consecutive days)', color: '#04b2e1',
-          benefits: { 'Medical Expenses & Hospitalization': '$60,000 (Excess $70)', 'Emergency Medical Evacuation': '$30,000', 'Emergency Dental Care': '$500 (Excess $70)', 'Repatriation of Mortal Remains': '$15,000', 'Emergency Return Home': '$2,000', 'Personal Liability': '$50,000 (Excess $150)', 'Loss of Passport/ID': '$300', 'Legal Defense': '$2,000', 'Advance of Bail Bond': '$15,000', 'Winter Sports': 'Available as option' }
-        },
-        {
-          id: 'students_premium', name: 'Students Premium', description: 'Enhanced coverage for students with higher limits.', price: 61236.95, currency: 'KES', duration: '6 months maximum (180 consecutive days)', color: '#21275c', popular: true,
-          benefits: { 'Medical Expenses & Hospitalization': '$100,000 (Excess $70)', 'Emergency Medical Evacuation': '$50,000', 'Emergency Dental Care': '$500 (Excess $70)', 'Repatriation of Mortal Remains': '$25,000', 'Emergency Return Home': '$2,000', 'Personal Liability': '$50,000 (Excess $150)', 'Loss of Passport/ID': '$300', 'Legal Defense': '$2,000', 'Advance of Bail Bond': '$20,000', 'Winter Sports': 'Available as option' }
-        }
-      ]
-    },
-    {
-      type: TravelProductType.PILGRIMAGE,
-      title: 'Pilgrimage Travel',
-      description: 'Specialized coverage for religious pilgrimage journeys. Applicable for all religions, except those holy places located in Europe (Schengen cover is mandatory).',
-      icon: 'pilgrimage',
-      features: [],
-      startingPrice: 2470.24,
-      currency: 'KES',
-      plans: [
-        {
-          id: 'pilgrimage_basic', name: 'Pilgrimage Basic', description: 'Essential coverage for pilgrimage journeys.', price: 2470.24, currency: 'KES', duration: '1-15 days', color: '#04b2e1',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': 'USD 10,000', 'Emergency Medical Evacuation': 'USD 15,000', 'Repatriation of Mortal Remains': 'USD 5,000', '24 Hours Assistance Services': 'Unlimited', 'Advance of Funds': 'USD 250', 'Compensation for In-flight Loss of Baggage': 'USD 250', 'Cover in case of War & Terrorism': 'Included' }
-        },
-        {
-          id: 'pilgrimage_plus', name: 'Pilgrimage Plus', description: 'Enhanced pilgrimage coverage with higher limits.', price: 2815.70, currency: 'KES', duration: '1-15 days', color: '#21275c',
-          benefits: { 'Medical Expenses & Hospitalization Abroad': 'USD 15,000', 'Emergency Medical Evacuation': 'USD 15,000', 'Repatriation of Mortal Remains': 'USD 10,000', '24 Hours Assistance Services': 'Unlimited', 'Advance of Funds': 'USD 500', 'Compensation for In-flight Loss of Baggage': 'USD 500', 'Cover in case of War & Terrorism': 'Included' }
-        },
-        {
-          id: 'pilgrimage_extra', name: 'Pilgrimage Extra', description: 'Premium pilgrimage coverage with maximum protection.', price: 3679.36, currency: 'KES', duration: '1-15 days', color: '#04b2e1', popular: true,
-          benefits: { 'Medical Expenses & Hospitalization Abroad': 'USD 25,000', 'Emergency Medical Evacuation': 'USD 15,000', 'Repatriation of Mortal Remains': 'USD 15,000', '24 Hours Assistance Services': 'Unlimited', 'Advance of Funds': 'USD 750', 'Compensation for In-flight Loss of Baggage': 'USD 750', 'Cover in case of War & Terrorism': 'Included' }
-        }
-      ]
-    },
-    {
-      type: TravelProductType.CORPORATE,
-      title: 'Corporate Travel',
-      description: 'Premium business travel insurance for corporate executives and employees.',
-      icon: 'corporate',
-      features: [],
-      startingPrice: 179511.37,
-      currency: 'KES',
-      plans: [
-        { id: 'corp_200', name: '200 Days/Year', description: 'Annual premium for corporate travel.', price: 179511.37, currency: 'KES', duration: 'Annual Premium', color: '#04b2e1', benefits: { 'Excess Day Rate': 'KES 960.57' } },
-        { id: 'corp_500', name: '500 Days/Year', description: 'Annual premium for corporate travel.', price: 305513.81, currency: 'KES', duration: 'Annual Premium', color: '#21275c', benefits: { 'Excess Day Rate': 'KES 779.20' } },
-        { id: 'corp_600', name: '600 Days/Year', description: 'Annual premium for corporate travel.', price: 410244.36, currency: 'KES', duration: 'Annual Premium', color: '#04b2e1', benefits: { 'Excess Day Rate': 'KES 779.20' } },
-        { id: 'corp_800', name: '800 Days/Year', description: 'Annual premium for corporate travel.', price: 515883.48, currency: 'KES', duration: 'Annual Premium', color: '#21275c', benefits: { 'Excess Day Rate': 'KES 779.20' } },
-        { id: 'corp_1000', name: '1000 Days/Year', description: 'Annual premium for corporate travel.', price: 572247.49, currency: 'KES', duration: 'Annual Premium', color: '#04b2e1', benefits: { 'Excess Day Rate': 'KES 597.83' } },
-        { id: 'corp_1500', name: '1500 Days/Year', description: 'Annual premium for corporate travel.', price: 836436.83, currency: 'KES', duration: 'Annual Premium', color: '#21275c', benefits: { 'Excess Day Rate': 'KES 597.83' } },
-        { id: 'corp_2000', name: '2000 Days/Year', description: 'Annual premium for corporate travel.', price: 857411.62, currency: 'KES', duration: 'Annual Premium', color: '#04b2e1', benefits: { 'Excess Day Rate': 'KES 594.38' } },
-        { id: 'corp_5000', name: '5000 Days/Year', description: 'Annual premium for corporate travel.', price: 913775.63, currency: 'KES', duration: 'Annual Premium', color: '#21275c', benefits: { 'Excess Day Rate': 'KES 551.19' } }
-      ]
-    },
-    {
-      type: TravelProductType.DOMESTIC,
-      title: 'Domestic Travel',
-      description: 'Protection for travel within Kenya, covering medical emergencies and trip disruptions. Daily premium varies by trip duration.',
-      icon: 'domestic',
-      features: [],
-      startingPrice: 126.66,
-      currency: 'KES',
-      plans: [
-        { id: 'domestic_1_8', name: '1 - 8 Days', description: 'Standard domestic coverage for short trips.', price: 199.20, currency: 'KES', duration: 'Total Premium Per Day', color: '#04b2e1', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_9_14', name: '9 - 14 Days', description: 'Standard domestic coverage for medium trips.', price: 186.77, currency: 'KES', duration: 'Total Premium Per Day', color: '#21275c', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_15_21', name: '15 - 21 Days', description: 'Standard domestic coverage for extended trips.', price: 174.33, currency: 'KES', duration: 'Total Premium Per Day', color: '#04b2e1', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_22_32', name: '22 - 32 Days', description: 'Standard domestic coverage for longer trips.', price: 163.97, currency: 'KES', duration: 'Total Premium Per Day', color: '#21275c', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_33_49', name: '33 - 49 Days', description: 'Standard domestic coverage for extended stays.', price: 151.53, currency: 'KES', duration: 'Total Premium Per Day', color: '#04b2e1', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_50_62', name: '50 - 62 Days', description: 'Standard domestic coverage for long stays.', price: 139.09, currency: 'KES', duration: 'Total Premium Per Day', color: '#21275c', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,000' } },
-        { id: 'domestic_63_92', name: '63 - 92 Days', description: 'Standard domestic coverage for very long stays.', price: 126.66, currency: 'KES', duration: 'Total Premium Per Day', color: '#04b2e1', benefits: { 'Medical Expenses': '$5,000', 'Medical Transportation/Repatriation': '$3,000', 'Emergency Dental Expenses': '$350', 'Transport of Deceased': '$3,000', 'Personal Accident (Transport)': '$7,000', 'Baggage Loss/Damage': '$300', 'Trip Cancellation': '$500 (Excess $50)', 'Hijack Coverage': '$30 per day max $3,0_00' } }
-      ]
-    },
-    {
-      type: TravelProductType.INBOUND,
-      title: 'Inbound Visitor',
-      description: 'Comprehensive coverage for international visitors traveling to Kenya. Premiums vary based on the duration of stay.',
-      icon: 'inbound',
-      features: [],
-      startingPrice: 3563.63,
-      currency: 'KES',
-      plans: [
-        { id: 'inbound_7', name: 'Up to 7 Days', description: 'Total premium for the coverage period.', price: 3563.63, currency: 'KES', duration: 'Up to 7 Days', color: '#04b2e1', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_10', name: 'Up to 10 Days', description: 'Total premium for the coverage period.', price: 5018.03, currency: 'KES', duration: 'Up to 10 Days', color: '#21275c', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_15', name: 'Up to 15 Days', description: 'Total premium for the coverage period.', price: 5366.95, currency: 'KES', duration: 'Up to 15 Days', color: '#04b2e1', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_21', name: 'Up to 21 Days', description: 'Total premium for the coverage period.', price: 5589.77, currency: 'KES', duration: 'Up to 21 Days', color: '#21275c', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_31', name: 'Up to 31 Days', description: 'Total premium for the coverage period.', price: 8840.58, currency: 'KES', duration: 'Up to 31 Days', color: '#04b2e1', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_62', name: 'Up to 62 Days', description: 'Total premium for the coverage period.', price: 13226.23, currency: 'KES', duration: 'Up to 62 Days', color: '#21275c', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_92', name: 'Up to 92 Days', description: 'Total premium for the coverage period.', price: 16939.96, currency: 'KES', duration: 'Up to 92 Days', color: '#04b2e1', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_180', name: 'Up to 180 Days', description: '180 consecutive days per trip.', price: 19012.73, currency: 'KES', duration: 'Up to 180 Days', color: '#21275c', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} },
-        { id: 'inbound_365', name: '1 Year Multi-Trip', description: '180 consecutive days per trip.', price: 24431.32, currency: 'KES', duration: '1 Year Multi-Trip', color: '#04b2e1', benefits: {'Medical Expenses & Hospitalization': '$130,000', 'Medical Transportation/Repatriation': '$130,000', 'Emergency Dental Care': '$1,000 (Excess $60)','Repatriation of Mortal Remains': 'Actual cost', 'Personal Accident (24 hours)': '$30,000', 'Baggage Delay Compensation': '$200', 'Legal Defense Abroad': '$3,000','Advance of Bail Bond': '$20,000', 'Trip Cancellation/Curtailment': '$2,000 (Excess $200)'} }
-      ]
-    }
+  travelPlans: Omit<TravelPlan, 'benefits'>[] = [
+    { id: 'AFRICA', name: 'Africa/Asia', description: 'Value cover for travels within Africa or Asia.' },
+    { id: 'EUROPE', name: 'Europe Basic', description: 'Essential cover for Europe.' },
+    { id: 'BASIC', name: 'Worldwide Basic', description: 'Basic cover for global travel.' },
+    { id: 'PLUS', name: 'Worldwide Plus', description: 'Enhanced worldwide insurance.' },
+    { id: 'EXTRA', name: 'Worldwide Extra', description: 'Ultimate protection while travelling.' },
   ];
 
-  benefitDescriptions: { [key: string]: string } = {
-    'Medical Expenses & Hospitalization Abroad': 'Coverage for medical treatment, hospitalization, and emergency medical expenses, including COVID-19.',
-    'Medical Expenses & Hospitalization': 'Coverage for medical treatment, hospitalization, and emergency medical expenses.',
-    'Medical Expenses': 'Coverage for medical treatment and emergency medical expenses within the country of travel.',
-    'Emergency Dental Expenses': 'Emergency dental treatment coverage for the relief of pain.',
-    'Medical Transportation/Repatriation': 'Emergency medical transportation to an adequate medical facility or repatriation.',
-    'Transport of Deceased': 'Covers the cost of transporting the deceased back to their place of residence.',
-    'Baggage Loss/Damage': 'Compensation for lost, stolen, or damaged luggage and personal effects.',
-    'Medical Excess': 'The out-of-pocket amount you must pay for a claim before the insurance pays.',
-    'Compulsory Quarantine (COVID-19)': 'A daily benefit paid if you are forced into a mandatory quarantine due to COVID-19.',
-    'Emergency Medical Evacuation': 'Emergency medical transportation to an adequate medical facility or repatriation to your home country.',
-    'Emergency Dental Care': 'Emergency dental treatment coverage for the relief of pain.',
-    'Repatriation of Mortal Remains': 'Covers the cost of transporting the deceased back to their home country.',
-    'Repatriation of Family Member': 'Covers the cost for a family member to travel with the repatriated insured person.',
-    'Emergency Return Home': 'Covers the cost of an emergency trip home following the death of a close family member.',
-    'Compassionate Emergency Visit': 'Covers travel and accommodation for a family member to visit you if you are hospitalized for an extended period.',
-    'Daily Hospital Cash Benefit': 'A fixed daily amount paid to you for each day you are hospitalized.',
-    'Personal Accident': 'Coverage for accidental death or permanent disability during your trip.',
-    'Personal Accident (Transport)': 'Coverage for accidental death or permanent disability while using specified transport.',
-    'Accidental Death (Public Transport)': 'Coverage for accidental death while using public transportation.',
-    'Total Disability in Means of public Transport': 'Coverage for total disability resulting from an accident while using public transport.',
-    'Baggage Loss Compensation': 'Compensation for lost, stolen, or damaged luggage.',
-    'Baggage Delay Compensation': 'Compensation to purchase essential items if your checked-in baggage is delayed.',
-    'Compensation for In-flight Loss of Baggage': 'Compensation for the loss of checked-in baggage by an airline.',
-    'Loss of Passport': 'Covers the cost of replacing a lost or stolen passport while traveling.',
-    'Loss of Passport/Driving License/ID': 'Covers the cost of replacing lost or stolen important documents.',
-    'Loss of Passport/ID': 'Covers the cost of replacing lost or stolen identity documents.',
-    'Personal Liability': 'Coverage for legal liability to third parties for bodily injury or property damage.',
-    'Personal Civil Liability': 'Coverage for legal liability to third parties for accidental bodily injury or property damage.',
-    'Legal Defense': 'Coverage for legal expenses.',
-    'Legal Defense Abroad': 'Coverage for legal expenses incurred abroad.',
-    'Advance of Bail Bond': 'An advance payment to secure your release on bail for a bailable offense.',
-    'Trip Cancellation': 'Reimbursement for pre-paid, non-refundable trip expenses if you have to cancel for a covered reason.',
-    'Trip Cancellation/Curtailment': 'Covers cancellation or cutting your trip short for covered reasons.',
-    'Journey Cancellation': 'Reimbursement for pre-paid, non-refundable trip expenses if you have to cancel for a covered reason.',
-    'Journey Curtailment': 'Reimbursement for unused trip expenses if you have to cut your trip short for a covered reason.',
-    'Hijack Coverage': 'Provides compensation for each day of a hijacking.',
-    'Hijack in means of public transport': 'Provides compensation for each day of a hijacking while on public transport.',
-    'War & Terrorism Coverage': 'Coverage for losses arising from acts of war or terrorism.',
-    'Cover in case of War & Terrorism': 'Coverage for losses arising from acts of war or terrorism.',
-    '24 Hours Assistance Services': 'Access to a 24/7 helpline for travel and medical assistance.',
-    'Advance of Funds': 'An emergency cash advance in case of theft or loss of funds.',
-    'Business Documents': 'Coverage for the loss of essential business documents.',
-    'Delivery of Medicines (Services only)': 'Covers the service of delivering essential medicines, but not the cost of the medicine itself.',
-    'Excess Day Rate': 'The additional cost per day for travel that exceeds the allocated man-days in the annual corporate plan.'
+  private rates: { [duration: string]: { [plan: string]: number } } = {
+    '4': { AFRICA: 12, ASIA: 14, EUROPE: 15, BASIC: 20, PLUS: 27, EXTRA: 34 },
+    '9': { AFRICA: 12, ASIA: 14, EUROPE: 15, BASIC: 20, PLUS: 27, EXTRA: 34 },
+    '15': { AFRICA: 17, ASIA: 19, EUROPE: 22, BASIC: 28, PLUS: 51, EXTRA: 62 },
+    '25': { AFRICA: 20, ASIA: 25, EUROPE: 30, BASIC: 35, PLUS: 55, EXTRA: 67 },
+    '32': { AFRICA: 25, ASIA: 28, EUROPE: 32, BASIC: 38, PLUS: 72, EXTRA: 81 },
+    '38': { AFRICA: 32, ASIA: 33, EUROPE: 38, BASIC: 48, PLUS: 90, EXTRA: 111 },
+    '62': { AFRICA: 50, ASIA: 52, EUROPE: 57, BASIC: 70, PLUS: 98, EXTRA: 165 },
+    '92': { AFRICA: 59, ASIA: 59, EUROPE: 74, BASIC: 98, PLUS: 138, EXTRA: 179 },
+    '185': { AFRICA: 70, ASIA: 70, EUROPE: 80, BASIC: 106, PLUS: 193, EXTRA: 240 },
+    '365': { AFRICA: 82, ASIA: 90, EUROPE: 103, BASIC: 136, PLUS: 248, EXTRA: 295 },
   };
 
-  countries = [ 'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea North', 'Korea South', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macedonia', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Swaziland', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe' ];
+  constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog) {
+    this.quotationForm = this.fb.group({
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      numTravelers: [1, [Validators.required, Validators.min(1)]],
+      destination: ['Africa', Validators.required],
+      plan: ['AFRICA', Validators.required],
+      winterSports: [false]
+    }, { validators: this.dateRangeValidator });
 
-  relationships = ['Spouse', 'Parent', 'Child', 'Sibling', 'Friend', 'Other'];
-
-  constructor(private router: Router) {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    this.minDepartureDate = today.toISOString().split('T')[0];
-    this.maxDepartureDate = tomorrow.toISOString().split('T')[0];
-    this.minReturnDate = this.minDepartureDate;
+    this.travelerDetailsForm = this.fb.group({
+      fullName: ['', Validators.required],
+      dob: ['', Validators.required],
+      passportNo: [''],
+      kraPin: [''],
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', Validators.required],
+      termsAndConditions: [false, Validators.requiredTrue],
+      dataPrivacyConsent: [false, Validators.requiredTrue],
+    });
   }
 
   ngOnInit(): void {
-    this.filteredDestinationCountries = [...this.countries];
-    this.checkLoginStatus();
-    this.updateMinReturnDate();
+    this.quotationForm.valueChanges.subscribe(() => { if (this.quotationForm.valid) { this.calculatePremium(); } else { this.premium = this.resetPremium(); }});
+    this.travelerDetailsForm.get('dob')?.valueChanges.subscribe(() => this.calculatePremium());
+  }
+
+  calculatePremium(): void {
+    if (!this.quotationForm.valid) return;
+    const values = this.quotationForm.value;
+    const diffTime = Math.abs(new Date(values.endDate).getTime() - new Date(values.startDate).getTime());
+    const durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    const durationTier = this.getDurationTier(durationDays);
+    if (!durationTier) { this.premium = this.resetPremium(); return; }
+
+    const baseRate = this.rates[durationTier][values.plan] || 0;
+    const subtotal = baseRate * values.numTravelers;
+
+    let groupDiscount = 0;
+    if (values.numTravelers >= 201) groupDiscount = subtotal * 0.25;
+    else if (values.numTravelers >= 101) groupDiscount = subtotal * 0.20;
+    else if (values.numTravelers >= 51) groupDiscount = subtotal * 0.15;
+    else if (values.numTravelers >= 21) groupDiscount = subtotal * 0.10;
+    else if (values.numTravelers >= 10) groupDiscount = subtotal * 0.05;
+
+    let ageSurcharge = 0;
+    const dob = this.travelerDetailsForm.get('dob')?.value;
+    if (dob) {
+        const age = new Date().getFullYear() - new Date(dob).getFullYear();
+        if (age >= 76) ageSurcharge = subtotal * 2;
+        else if (age >= 66) ageSurcharge = subtotal * 1;
+    }
+    
+    const winterSportsSurcharge = values.winterSports ? subtotal : 0;
+    const totalPayable = subtotal - groupDiscount + ageSurcharge + winterSportsSurcharge;
+    this.premium = { baseRate, subtotal, groupDiscount, ageSurcharge, winterSportsSurcharge, totalPayable, durationDays };
+    
+    this.selectedPlanDetails = this.getFullPlanDetails(values.plan);
+  }
+
+  nextStep(): void { if (!this.isCurrentStepInvalid()) this.currentStep++; }
+  prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
+
+  isCurrentStepInvalid(): boolean {
+    if (this.currentStep === 1) return this.quotationForm.invalid;
+    if (this.currentStep === 2) return this.travelerDetailsForm.invalid;
+    return false;
   }
   
-  // --- DATE LOGIC ---
-  updateMinReturnDate(): void {
-    if (this.travelerDetails.departureDate) {
-      const departure = new Date(this.travelerDetails.departureDate);
-      departure.setDate(departure.getDate() + 1);
-      this.minReturnDate = departure.toISOString().split('T')[0];
-
-      if (this.travelerDetails.returnDate && this.travelerDetails.returnDate < this.minReturnDate) {
-        this.travelerDetails.returnDate = '';
+  handlePayment(): void {
+    if (this.travelerDetailsForm.invalid) return;
+    const dialogRef = this.dialog.open(MpesaPaymentModalComponent, {
+      data: {
+        amount: this.premium.totalPayable,
+        phoneNumber: this.travelerDetailsForm.get('phoneNumber')?.value,
+        reference: `FID-TRV-${Date.now()}`,
+        description: `${this.getPlanName(this.quotationForm.value.plan)} Cover`
       }
-    } else {
-       const today = new Date();
-       today.setDate(today.getDate() + 1);
-       this.minReturnDate = today.toISOString().split('T')[0];
-    }
+    });
+    dialogRef.afterClosed().subscribe((result: PaymentResult | null) => { if (result?.success) { this.router.navigate(['/dashboard']); }});
   }
 
-  // --- MODAL AND PLAN SELECTION ---
-  openBenefitsModal(plan: TravelPlan, event: MouseEvent): void {
-    event.stopPropagation();
-    this.planForModal = plan;
-    this.state.showBenefitsModal = true;
-  }
-
-  closeBenefitsModal(): void {
-    this.state.showBenefitsModal = false;
-    this.planForModal = null;
-  }
-
-  selectPlanAndContinue(plan: TravelPlan | null): void {
-    if (!plan) return;
-    
-    this.state.selectedPlan = plan;
-    this.closeBenefitsModal();
-    this.state.currentStep = QuoteStep.TRAVELER_DETAILS;
-  }
-
-  // --- PRODUCT SELECTION ---
-  selectProduct(product: TravelProduct): void {
-    this.state.selectedProduct = product;
-    this.state.currentStep = QuoteStep.PLAN_SELECTION;
-  }
-
-  // --- BENEFIT HOVER ---
-  onBenefitHover(benefit: string, event: MouseEvent): void {
-    this.hoveredBenefit = benefit;
-    this.tooltipX = event.clientX + 15;
-    this.tooltipY = event.clientY + 15;
-  }
-
-  onBenefitLeave(): void {
-    this.hoveredBenefit = null;
-  }
-
-  getBenefitDescription(benefitKey: string): string {
-    const foundKey = Object.keys(this.benefitDescriptions).find(k => benefitKey.toLowerCase().includes(k.toLowerCase()));
-    return foundKey ? this.benefitDescriptions[foundKey] : 'Benefit information not available.';
-  }
-
-  // --- NAVIGATION ---
-  goToStep(step: QuoteStep): void {
-    if (step <= this.state.currentStep) {
-      this.state.currentStep = step;
-    }
-  }
-
-  goToPreviousStep(): void {
-    if (this.state.currentStep > QuoteStep.PRODUCT_SELECTION) {
-      this.state.currentStep--;
-    }
-  }
-
-  // --- DESTINATION SEARCH ---
-  filterDestinationCountries(event: any): void {
-    const query = event.target.value.toLowerCase();
-    this.destinationSearch = event.target.value;
-    this.travelerDetails.destination = event.target.value;
-    this.filteredDestinationCountries = this.countries.filter((country) =>
-      country.toLowerCase().includes(query),
-    );
-    this.showDestinationDropdown = true;
-  }
-
-  selectDestinationCountry(country: string): void {
-    this.travelerDetails.destination = country;
-    this.destinationSearch = country;
-    this.showDestinationDropdown = false;
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: any): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.destination-dropdown-container')) {
-      this.showDestinationDropdown = false;
-    }
-  }
-
-  // --- VALIDATION & QUOTE ---
-  validateForm(): boolean {
-    const errors: string[] = [];
-    const details = this.travelerDetails;
-    
-    if (!details.firstName?.trim()) errors.push('First name is required');
-    if (!details.lastName?.trim()) errors.push('Last name is required');
-    if (!details.email?.trim()) {
-      errors.push('Email is required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)) {
-      errors.push('Email is invalid');
-    }
-    if (!details.phone?.trim()) errors.push('Phone number is required');
-    if (!details.dateOfBirth) errors.push('Date of birth is required');
-    if (!details.passportNumber?.trim()) errors.push('Passport number is required');
-    if (!details.destination?.trim() || !this.countries.includes(details.destination)) {
-      errors.push('A valid destination is required');
-    }
-    if (!details.travelPurpose) errors.push('Travel purpose is required');
-    if (!details.departureDate) {
-        errors.push('Departure date is required');
-    } 
-    if (!details.returnDate) {
-        errors.push('Return date is required');
-    }
-    
-    if (details.departureDate && details.returnDate && details.returnDate <= details.departureDate) {
-      errors.push('Return date must be after the departure date');
-    }
-    
-    if (!details.emergencyContact.name?.trim()) errors.push('Emergency contact name is required');
-    if (!details.emergencyContact.phone?.trim()) errors.push('Emergency contact phone is required');
-    if (!details.emergencyContact.relationship?.trim()) errors.push('Emergency contact relationship is required');
-    
-    this.validationErrors = errors.length > 0 ? { 'form': errors } : {};
-    return errors.length === 0;
-  }
-
-  getQuote(): void {
-    if (this.validateForm()) {
-      this.state.currentStep = QuoteStep.REVIEW_PAYMENT;
-    }
-  }
-
-  // --- PAYMENT & DOWNLOAD ---
-  downloadQuote(): void {
-    alert('Your quote is being downloaded...');
-    console.log('Downloading quote for:', this.travelerDetails, 'Plan:', this.state.selectedPlan);
+  private getDurationTier(days: number): string | null {
+    if (days <= 9) return '9'; if (days <= 15) return '15'; if (days <= 25) return '25'; if (days <= 32) return '32'; if (days <= 38) return '38';
+    if (days <= 62) return '62'; if (days <= 92) return '92'; if (days <= 185) return '185'; if (days <= 365) return '365';
+    return null;
   }
   
-  proceedToPayment(): void {
-    if (this.state.isLoggedIn) {
-      this.state.showPaymentModal = true;
-    } else {
-      this.router.navigate(['/sign-in']);
+  getToday(): string { return new Date().toISOString().split('T')[0]; }
+  dateRangeValidator(group: AbstractControl): { [key: string]: boolean } | null { const start = group.get('startDate')?.value; const end = group.get('endDate')?.value; return start && end && start > end ? { invalidDateRange: true } : null; }
+  getPlanName(planId: string): string { return this.travelPlans.find(p => p.id === planId)?.name || 'Unknown Plan'; }
+  closeForm(): void { this.router.navigate(['/dashboard']); }
+  
+  //
+  // FIX: Converted from an arrow function to a regular method to solve the initialization error.
+  //
+  private resetPremium(): Premium {
+    return { baseRate: 0, subtotal: 0, groupDiscount: 0, ageSurcharge: 0, winterSportsSurcharge: 0, totalPayable: 0, durationDays: 0 };
+  }
+  
+  private getFullPlanDetails(planId: string): TravelPlan | null {
+    const planInfo = this.travelPlans.find(p => p.id === planId);
+    if (!planInfo) return null;
+
+    if (planId === 'PLUS') {
+      return {
+        ...planInfo,
+        benefits: [
+          { name: 'Emergency Medical expenses', limit: '$140,000' },
+          { name: 'Excess (Medical)', limit: '$130' },
+          { name: 'Repatriation', limit: '$25,000' },
+          { name: 'Baggage Loss/Delay', limit: '$2,000' },
+          { name: 'Personal Liability', limit: '$150,000' },
+          { name: 'Cancellation or Curtailment', limit: '$2,000' },
+        ]
+      };
     }
-  }
-
-  private checkLoginStatus(): void {
-    this.state.isLoggedIn = false;
-  }
-
-  processPayment(): void {
-    this.state.isLoading = true;
-    
-    setTimeout(() => {
-      this.state.isLoading = false;
-      this.state.showPaymentModal = false;
-      alert('Payment successful! Your travel insurance is now active.');
-      this.resetForm();
-    }, 3000);
-  }
-
-  closePaymentModal(): void {
-    this.state.showPaymentModal = false;
-  }
-
-  private resetForm(): void {
-    this.state.currentStep = QuoteStep.PRODUCT_SELECTION;
-    this.state.selectedProduct = null;
-    this.state.selectedPlan = null;
-    this.travelerDetails = {
-      firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', passportNumber: '', nationality: 'Kenya', placeOfOrigin: 'Kenya', destination: '', travelPurpose: '', departureDate: '', returnDate: '',
-      emergencyContact: { name: '', phone: '', relationship: '' }
-    };
-    this.destinationSearch = '';
-    this.validationErrors = {};
-  }
-
-  // --- UTILITY METHODS ---
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  }
-
-  returnToHomepage(): void {
-    window.location.href = '/';
+    return { ...planInfo, benefits: [ {name: 'Standard Coverage', limit: 'Varies by plan'} ]};
   }
 }
-
-
-
-

@@ -1,935 +1,140 @@
-<!-- Global Fixed Header -->
-<div
-    class="fixed left-0 right-0 top-0 z-40 h-20 bg-white/95 shadow-md backdrop-blur-sm"
->
-    <div
-        class="mx-auto flex h-full w-full max-w-screen-xl items-center justify-between px-4 sm:px-8"
-    >
-        <!-- Logo -->
-        <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROTKn0j9cVpA67LPdjPeYBR3KnWiwP1gsM3cS27rca-7m8BgvgUylY4uhBnOnVnXFx8Is&usqp=CAU"
-            alt="Geminia Insurance Logo"
-            class="h-10 w-auto"
-            style="mix-blend-mode: multiply"
-        />
-
-        <div class="flex items-center space-x-4 sm:space-x-6">
-            <!-- Progress Steps -->
-            <div
-                *ngIf="state.currentStep > QuoteStep.PRODUCT_SELECTION"
-                class="hidden items-center space-x-2 text-sm sm:flex"
-            >
-                <div
-                    class="step-indicator"
-                    [class.active]="
-                        state.currentStep >= QuoteStep.PRODUCT_SELECTION
-                    "
-                >
-                    1
-                </div>
-                <div class="h-px w-8 bg-gray-300"></div>
-                <div
-                    class="step-indicator"
-                    [class.active]="
-                        state.currentStep >= QuoteStep.PLAN_SELECTION
-                    "
-                >
-                    2
-                </div>
-                <div class="h-px w-8 bg-gray-300"></div>
-                <div
-                    class="step-indicator"
-                    [class.active]="
-                        state.currentStep >= QuoteStep.TRAVELER_DETAILS
-                    "
-                >
-                    3
-                </div>
-                <div class="h-px w-8 bg-gray-300"></div>
-                <div
-                    class="step-indicator"
-                    [class.active]="
-                        state.currentStep >= QuoteStep.REVIEW_PAYMENT
-                    "
-                >
-                    4
-                </div>
-            </div>
-
-            <!-- Close Button -->
-            <button
-                type="button"
-                (click)="returnToHomepage()"
-                class="flex items-center space-x-2 rounded-lg px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
-            >
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                </svg>
-                <span class="hidden sm:inline">Close</span>
-            </button>
+<div class="min-h-screen w-screen bg-gray-50">
+  <!-- Header -->
+  <header class="sticky top-0 z-10 bg-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-6">
+      <div class="flex items-center justify-between py-3">
+        <div class="flex items-center gap-4">
+          <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Logo" class="h-10 w-auto" />
+          <h1 class="text-xl font-semibold text-slate-800">Fidelity Travel Insurance</h1>
         </div>
+        <button (click)="closeForm()" class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50" title="Close">
+          <mat-icon class="!h-4 !w-4 !text-base">close</mat-icon>Close
+        </button>
+      </div>
     </div>
-</div>
+  </header>
 
-<!-- Main Content Area with top padding to offset the fixed header -->
-<main class="pt-24">
-    <!-- Step 1: Product Selection -->
-    <div
-        *ngIf="state.currentStep === QuoteStep.PRODUCT_SELECTION"
-        class="w-screen bg-white px-4 py-8"
-    >
-        <div class="mx-auto w-full max-w-7xl">
-            <div class="my-12 text-center">
-                <h1 class="mb-4 text-4xl font-bold text-black md:text-5xl">
-                    Choose Your Travel
-                    <span class="text-geminia-navy">Insurance</span>
-                </h1>
-                <p class="mx-auto max-w-3xl text-lg text-gray-600 md:text-xl">
-                    Protect your journey with comprehensive travel insurance
-                    coverage designed for every type of traveler.
-                </p>
-            </div>
-
-            <div
-                class="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
-            >
-                <div
-                    *ngFor="let product of travelProducts"
-                    class="product-selection-card group cursor-pointer"
-                    (click)="selectProduct(product)"
-                >
-                    <div
-                        class="flex h-full flex-col rounded-lg bg-white p-6 transition-all duration-300"
-                    >
-                        <div class="mb-4 flex h-6 items-start justify-end">
-                            <div
-                                *ngIf="product.popular"
-                                class="text-geminia-blue rounded-full bg-sky-100 px-3 py-1 text-xs font-bold uppercase tracking-wider"
-                            >
-                                Most Popular
-                            </div>
-                        </div>
-                        <h3 class="mb-2 text-xl font-bold text-black">
-                            {{ product.title }}
-                        </h3>
-                        <p class="mb-4 flex-grow text-sm text-gray-500">
-                            {{ product.description }}
-                        </p>
-                        <div class="mt-auto">
-                            <span class="text-2xl font-bold text-gray-800"
-                                >From
-                                {{
-                                    formatCurrency(product.startingPrice)
-                                }}</span
-                            >
-                            <span class="ml-2 text-sm text-gray-500"
-                                >per person</span
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Main Content -->
+  <div class="p-6">
+    <div class="mx-auto max-w-7xl">
+      <!-- Progress Steps -->
+      <div class="mb-8">
+        <div class="flex items-center">
+          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 1" [class.text-gray-500]="currentStep < 1">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 1" [class.text-white]="currentStep >= 1" [class.bg-gray-300]="currentStep < 1">1</div>
+            <span class="ml-2 text-sm font-medium">Quote</span>
+          </div>
+          <div class="mx-4 h-px flex-1" [class.bg-fidelity-turquoise]="currentStep > 1" [class.bg-gray-300]="currentStep <= 1"></div>
+          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 2" [class.text-white]="currentStep >= 2" [class.bg-gray-300]="currentStep < 2">2</div>
+            <span class="ml-2 text-sm font-medium">Details</span>
+          </div>
+          <div class="mx-4 h-px flex-1" [class.bg-fidelity-turquoise]="currentStep > 2" [class.bg-gray-300]="currentStep <= 2"></div>
+          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 3" [class.text-gray-500]="currentStep < 3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 3" [class.text-white]="currentStep >= 3" [class.bg-gray-300]="currentStep < 3">3</div>
+            <span class="ml-2 text-sm font-medium">Review & Pay</span>
+          </div>
         </div>
+      </div>
+
+      <!-- Content Container -->
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <!-- Left Column: Forms -->
+        <div class="lg:col-span-2">
+          <!-- Step 1: Quote Form -->
+          <div *ngIf="currentStep === 1" class="step-content rounded-lg bg-white p-6 shadow-sm">
+            <form [formGroup]="quotationForm">
+              <h2 class="mb-2 text-2xl font-semibold text-gray-900">Get Your Travel Insurance Quote</h2>
+              <p class="mb-6 text-gray-600">Tell us about your trip to see available plans and pricing.</p>
+              
+              <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Start Date<span class="text-red-500">*</span></label><input type="date" formControlName="startDate" [min]="getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">End Date<span class="text-red-500">*</span></label><input type="date" formControlName="endDate" [min]="quotationForm.get('startDate')?.value || getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Number of Travelers<span class="text-red-500">*</span></label><input type="number" formControlName="numTravelers" min="1" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Destination Area<span class="text-red-500">*</span></label><select formControlName="destination" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option *ngFor="let region of destinationRegions" [value]="region">{{ region }}</option></select></div>
+              </div>
+
+              <label class="mb-3 mt-4 block text-sm font-medium text-gray-700">Select a Plan<span class="text-red-500">*</span></label>
+              <div class="plan-selector">
+                <label *ngFor="let plan of travelPlans">
+                  <input type="radio" formControlName="plan" [value]="plan.id" />
+                  <div class="plan-card">
+                    <div class="plan-name">{{ plan.name }}</div>
+                    <div class="plan-description">{{ plan.description }}</div>
+                  </div>
+                </label>
+              </div>
+
+              <div class="mt-6 flex items-center">
+                <input type="checkbox" formControlName="winterSports" id="winterSports" class="h-4 w-4 rounded border-gray-300 text-fidelity-turquoise focus:ring-fidelity-turquoise"/>
+                <label for="winterSports" class="ml-2 text-sm text-gray-700">Add Winter Sports cover (Premium Surcharge applies)</label>
+              </div>
+            </form>
+          </div>
+
+          <!-- Step 2: Traveler Details -->
+          <div *ngIf="currentStep === 2" class="step-content rounded-lg bg-white p-6 shadow-sm">
+            <h2 class="mb-2 text-2xl font-semibold text-gray-900">Traveler Details</h2>
+            <p class="mb-6 text-gray-600">Please provide the primary traveler's information.</p>
+            <form [formGroup]="travelerDetailsForm">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label><input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label><input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Passport Number</label><input type="text" formControlName="passportNo" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN</label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+              </div>
+              <div class="mt-6 space-y-4">
+                  <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span></label>
+                  <label class="flex items-start"><input type="checkbox" formControlName="dataPrivacyConsent" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/privacy" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Data Privacy Policy</a>.*</span></label>
+              </div>
+            </form>
+          </div>
+
+          <!-- Step 3: Review & Pay -->
+          <div *ngIf="currentStep === 3" class="step-content rounded-lg bg-white p-6 shadow-sm">
+            <h2 class="mb-6 text-2xl font-semibold text-gray-900">Review Your Quote</h2>
+            <div class="review-section">
+              <h4>Trip Details</h4>
+              <div class="review-grid"><span class="label">Destination</span><span class="value">{{ quotationForm.value.destination }}</span><span class="label">Travel Dates</span><span class="value">{{ quotationForm.value.startDate | date:'mediumDate' }} - {{ quotationForm.value.endDate | date:'mediumDate' }} ({{ premium.durationDays }} days)</span><span class="label">Travelers</span><span class="value">{{ quotationForm.value.numTravelers }}</span><span class="label">Cover Plan</span><span class="value">{{ getPlanName(quotationForm.value.plan) }}</span></div>
+              <h4>Traveler Information</h4>
+              <div class="review-grid"><span class="label">Name</span><span class="value">{{ travelerDetailsForm.value.fullName }}</span><span class="label">Email</span><span class="value">{{ travelerDetailsForm.value.email }}</span><span class="label">Phone</span><span class="value">{{ travelerDetailsForm.value.phoneNumber }}</span></div>
+              <h4 class="mt-8">Plan Benefits</h4>
+              <table *ngIf="selectedPlanDetails" class="benefit-table">
+                <thead><tr><th>Benefit</th><th>Limit</th></tr></thead>
+                <tbody><tr *ngFor="let benefit of selectedPlanDetails.benefits"><td>{{ benefit.name }}</td><td>{{ benefit.limit }}</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Premium Summary -->
+        <div class="lg:col-span-1">
+          <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900">Premium Summary</h3>
+            <div class="space-y-3 rounded-lg bg-fidelity-turquoise/10 p-4 text-sm">
+              <div class="flex justify-between font-semibold"><span>Base Rate (USD)</span><span>$ {{ premium.baseRate | number:'1.2-2' }}</span></div>
+              <div class="flex justify-between"><span>Number of Travelers</span><span>x {{ quotationForm.get('numTravelers')?.value || 1 }}</span></div>
+              <div class="border-t my-2"></div>
+              <div class="flex justify-between font-semibold"><span>Subtotal (USD)</span><span>$ {{ premium.subtotal | number:'1.2-2' }}</span></div>
+              <div *ngIf="premium.groupDiscount > 0" class="flex justify-between text-green-600"><span>Group Discount</span><span>- $ {{ premium.groupDiscount | number:'1.2-2' }}</span></div>
+              <div *ngIf="premium.ageSurcharge > 0" class="flex justify-between text-red-500"><span>Age Surcharge</span><span>+ $ {{ premium.ageSurcharge | number:'1.2-2' }}</span></div>
+              <div *ngIf="premium.winterSportsSurcharge > 0" class="flex justify-between text-red-500"><span>Winter Sports</span><span>+ $ {{ premium.winterSportsSurcharge | number:'1.2-2' }}</span></div>
+              <div class="border-t my-2"></div>
+              <div class="flex justify-between items-center text-xl font-bold text-fidelity-turquoise"><span>Total Payable</span><span>$ {{ premium.totalPayable | number:'1.2-2' }}</span></div>
+            </div>
+            
+            <div class="mt-6">
+              <button *ngIf="currentStep < 3" (click)="nextStep()" [disabled]="isCurrentStepInvalid()" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Next</button>
+              <div *ngIf="currentStep > 1" class="mt-4 flex justify-between items-center">
+                <button (click)="prevStep()" class="text-sm font-medium text-gray-600 hover:text-fidelity-turquoise">Back</button>
+                <button *ngIf="currentStep === 3" (click)="handlePayment()" [disabled]="travelerDetailsForm.invalid" class="btn-primary rounded-md px-6 py-2 font-medium">Proceed to Payment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Step 2: Plan Selection -->
-    <div
-        *ngIf="
-            state.currentStep === QuoteStep.PLAN_SELECTION &&
-            state.selectedProduct
-        "
-        class="w-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12"
-    >
-        <div class="mx-auto max-w-7xl">
-            <div class="mb-12">
-                <button
-                    (click)="goToPreviousStep()"
-                    class="text-geminia-blue hover:text-geminia-navy mb-6 flex items-center transition-colors"
-                >
-                    <svg
-                        class="mr-2 h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 19l-7-7 7-7"
-                        ></path>
-                    </svg>
-                    Back to Products
-                </button>
-                <div class="text-center">
-                    <h2 class="mb-4 text-4xl font-bold text-gray-800">
-                        <span class="text-geminia-blue">{{
-                            state.selectedProduct.title
-                        }}</span>
-                        Plans
-                    </h2>
-                    <p class="text-xl text-gray-600">
-                        Choose the coverage level that best fits your travel
-                        needs.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Plan Cards Grid -->
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                <div
-                    *ngFor="let plan of state.selectedProduct.plans"
-                    class="plan-card group transform cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
-                    [class.ring-4]="plan.popular"
-                    [class.ring-blue-400]="plan.popular"
-                    style="background-color: #04b2e1"
-                >
-                    <div class="relative flex h-full min-h-[400px] flex-col">
-                        <!-- Popular Badge -->
-                        <div class="flex h-16 items-start justify-end p-6">
-                            <div
-                                *ngIf="plan.popular"
-                                class="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wider transition-transform duration-300 group-hover:scale-105"
-                                style="color: #21275c"
-                            >
-                                Most Popular
-                            </div>
-                        </div>
-
-                        <!-- Plan Content -->
-                        <div class="flex-grow px-6 pb-4">
-                            <h3 class="mb-4 text-2xl font-bold text-white">
-                                {{ plan.name }}
-                            </h3>
-                            <p class="mb-6 text-white/90">
-                                {{ plan.description }}
-                            </p>
-
-                            <!-- Pricing -->
-                            <div class="mb-6">
-                                <div
-                                    class="text-3xl font-bold text-white transition-transform duration-300 group-hover:scale-105"
-                                >
-                                    {{ formatCurrency(plan.price) }}
-                                </div>
-                                <p class="text-sm text-white/80">
-                                    {{ plan.duration }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Action Button -->
-                        <div class="p-6 pt-0">
-                            <button
-                                (click)="openBenefitsModal(plan, $event)"
-                                class="w-full rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                                style="background-color: #21275c"
-                            >
-                                View Benefits
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 3: Traveler Details -->
-    <div
-        *ngIf="state.currentStep === QuoteStep.TRAVELER_DETAILS"
-        class="w-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12"
-    >
-        <div class="mx-auto max-w-4xl">
-            <div class="mb-12">
-                <button
-                    (click)="goToPreviousStep()"
-                    class="text-geminia-blue hover:text-geminia-navy mb-6 flex items-center transition-colors"
-                >
-                    <svg
-                        class="mr-2 h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 19l-7-7 7-7"
-                        ></path>
-                    </svg>
-                    Back to Plans
-                </button>
-                <div class="text-center">
-                    <h2 class="mb-4 text-4xl font-bold text-gray-800">
-                        <span class="text-geminia-blue">Traveler</span> Details
-                    </h2>
-                    <p class="text-xl text-gray-600">
-                        Please provide your travel information to complete your
-                        quote.
-                    </p>
-                </div>
-            </div>
-            <div class="mb-8 rounded-2xl bg-white p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-geminia-blue text-lg font-semibold">
-                            Selected: {{ state.selectedPlan?.name }}
-                        </h3>
-                        <p class="text-gray-600">
-                            {{ formatCurrency(state.selectedPlan?.price || 0) }}
-                            - {{ state.selectedPlan?.duration }}
-                        </p>
-                    </div>
-                    <button
-                        (click)="goToStep(QuoteStep.PLAN_SELECTION)"
-                        class="text-geminia-blue hover:text-geminia-navy text-sm font-medium transition-colors"
-                    >
-                        Change Plan
-                    </button>
-                </div>
-            </div>
-            <div class="rounded-2xl bg-white p-8 shadow-lg">
-                <form
-                    class="space-y-8"
-                    #travelerForm="ngForm"
-                    (ngSubmit)="getQuote()"
-                >
-                    <div class="form-section">
-                        <h3
-                            class="mb-6 border-b pb-3 text-xl font-semibold text-gray-800"
-                        >
-                            Personal Information
-                        </h3>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label for="firstName" class="form-label"
-                                    >First Name *</label
-                                ><input
-                                    id="firstName"
-                                    type="text"
-                                    [(ngModel)]="travelerDetails.firstName"
-                                    name="firstName"
-                                    class="form-input"
-                                    placeholder="e.g., Jane"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="lastName" class="form-label"
-                                    >Last Name *</label
-                                ><input
-                                    id="lastName"
-                                    type="text"
-                                    [(ngModel)]="travelerDetails.lastName"
-                                    name="lastName"
-                                    class="form-input"
-                                    placeholder="e.g., Doe"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="email" class="form-label"
-                                    >Email Address *</label
-                                ><input
-                                    id="email"
-                                    type="email"
-                                    [(ngModel)]="travelerDetails.email"
-                                    name="email"
-                                    class="form-input"
-                                    placeholder="e.g., jane.doe@example.com"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="phone" class="form-label"
-                                    >Phone Number *</label
-                                ><input
-                                    id="phone"
-                                    type="tel"
-                                    [(ngModel)]="travelerDetails.phone"
-                                    name="phone"
-                                    class="form-input"
-                                    placeholder="e.g., 0712345678"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="dateOfBirth" class="form-label"
-                                    >Date of Birth *</label
-                                ><input
-                                    id="dateOfBirth"
-                                    type="date"
-                                    [(ngModel)]="travelerDetails.dateOfBirth"
-                                    name="dateOfBirth"
-                                    class="form-input"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="passportNumber" class="form-label"
-                                    >Passport Number *</label
-                                ><input
-                                    id="passportNumber"
-                                    type="text"
-                                    [(ngModel)]="travelerDetails.passportNumber"
-                                    name="passportNumber"
-                                    class="form-input"
-                                    placeholder="e.g., A12345678"
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-section">
-                        <h3
-                            class="mb-6 border-b pb-3 text-xl font-semibold text-gray-800"
-                        >
-                            Travel Information
-                        </h3>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div
-                                class="destination-dropdown-container relative"
-                            >
-                                <label for="destination" class="form-label"
-                                    >Destination Country *</label
-                                >
-                                <input
-                                    id="destination"
-                                    type="text"
-                                    [(ngModel)]="destinationSearch"
-                                    (input)="filterDestinationCountries($event)"
-                                    (focus)="showDestinationDropdown = true"
-                                    name="destination"
-                                    class="form-input"
-                                    placeholder="Search and select destination"
-                                    autocomplete="off"
-                                    required
-                                />
-                                <div
-                                    *ngIf="
-                                        showDestinationDropdown &&
-                                        filteredDestinationCountries.length > 0
-                                    "
-                                    class="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-300 bg-white shadow-lg"
-                                >
-                                    <div
-                                        *ngFor="
-                                            let country of filteredDestinationCountries
-                                        "
-                                        (click)="
-                                            selectDestinationCountry(country)
-                                        "
-                                        class="hover:bg-geminia-blue/10 hover:text-geminia-blue cursor-pointer border-b border-gray-100 px-4 py-2 last:border-b-0"
-                                    >
-                                        {{ country }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="travelPurpose" class="form-label"
-                                    >Purpose of Travel *</label
-                                >
-                                <select
-                                    id="travelPurpose"
-                                    [(ngModel)]="travelerDetails.travelPurpose"
-                                    name="travelPurpose"
-                                    class="form-input"
-                                    required
-                                >
-                                    <option value="" disabled selected>
-                                        Select purpose
-                                    </option>
-                                    <option value="tourism">Tourism</option>
-                                    <option value="business">Business</option>
-                                    <option value="education">Education</option>
-                                    <option value="medical">Medical</option>
-                                    <option value="pilgrimage">
-                                        Pilgrimage
-                                    </option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="departureDate" class="form-label"
-                                    >Departure Date *</label
-                                >
-                                <input
-                                    id="departureDate"
-                                    type="date"
-                                    [(ngModel)]="travelerDetails.departureDate"
-                                    name="departureDate"
-                                    class="form-input"
-                                    required
-                                    [min]="minDepartureDate"
-                                    [max]="maxDepartureDate"
-                                    (input)="updateMinReturnDate()"
-                                />
-                            </div>
-                            <div>
-                                <label for="returnDate" class="form-label"
-                                    >Return Date *</label
-                                >
-                                <input
-                                    id="returnDate"
-                                    type="date"
-                                    [(ngModel)]="travelerDetails.returnDate"
-                                    name="returnDate"
-                                    class="form-input"
-                                    required
-                                    [min]="minReturnDate"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-section">
-                        <h3
-                            class="mb-6 border-b pb-3 text-xl font-semibold text-gray-800"
-                        >
-                            Emergency Contact
-                        </h3>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label for="emergencyName" class="form-label"
-                                    >Contact Name *</label
-                                ><input
-                                    id="emergencyName"
-                                    type="text"
-                                    [(ngModel)]="
-                                        travelerDetails.emergencyContact.name
-                                    "
-                                    name="emergencyName"
-                                    class="form-input"
-                                    placeholder="Enter name"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label for="emergencyPhone" class="form-label"
-                                    >Contact Phone *</label
-                                ><input
-                                    id="emergencyPhone"
-                                    type="tel"
-                                    [(ngModel)]="
-                                        travelerDetails.emergencyContact.phone
-                                    "
-                                    name="emergencyPhone"
-                                    class="form-input"
-                                    placeholder="Enter phone"
-                                    required
-                                />
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="relationship" class="form-label"
-                                    >Relationship *</label
-                                >
-                                <select
-                                    id="relationship"
-                                    [(ngModel)]="
-                                        travelerDetails.emergencyContact
-                                            .relationship
-                                    "
-                                    name="relationship"
-                                    class="form-input"
-                                    required
-                                >
-                                    <option value="" disabled selected>
-                                        Select relationship
-                                    </option>
-                                    <option
-                                        *ngFor="
-                                            let relationship of relationships
-                                        "
-                                        [value]="relationship.toLowerCase()"
-                                    >
-                                        {{ relationship }}
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div
-                        *ngIf="
-                            validationErrors['form'] &&
-                            validationErrors['form'].length > 0
-                        "
-                        class="rounded-lg border border-red-200 bg-red-50 p-4"
-                    >
-                        <div class="flex">
-                            <svg
-                                class="mr-3 mt-0.5 h-5 w-5 flex-shrink-0 text-red-400"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                    clip-rule="evenodd"
-                                ></path>
-                            </svg>
-                            <div>
-                                <h3 class="text-sm font-medium text-red-800">
-                                    Please fix the following errors:
-                                </h3>
-                                <ul
-                                    class="mt-2 list-inside list-disc space-y-1 text-sm text-red-700"
-                                >
-                                    <li
-                                        *ngFor="
-                                            let error of validationErrors[
-                                                'form'
-                                            ]
-                                        "
-                                    >
-                                        {{ error }}
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-end border-t pt-6">
-                        <button
-                            type="submit"
-                            class="btn-select-plan-custom transform rounded-xl px-12 py-4 font-semibold text-white shadow-lg transition-all hover:-translate-y-px hover:shadow-xl"
-                        >
-                            Get a Quote
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 4: Review & Payment -->
-    <div
-        *ngIf="state.currentStep === QuoteStep.REVIEW_PAYMENT"
-        class="w-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12"
-    >
-        <div class="mx-auto max-w-4xl">
-            <div class="mb-12">
-                <button
-                    (click)="goToPreviousStep()"
-                    class="text-geminia-blue hover:text-geminia-navy mb-6 flex items-center transition-colors"
-                >
-                    <svg
-                        class="mr-2 h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M15 19l-7-7 7-7"
-                        ></path>
-                    </svg>
-                    Back to Details
-                </button>
-                <div class="text-center">
-                    <h2 class="mb-4 text-4xl font-bold text-gray-800">
-                        <span class="text-geminia-blue">Quote</span> Summary
-                    </h2>
-                    <p class="text-xl text-gray-600">
-                        Please review your quote details and proceed to payment.
-                    </p>
-                </div>
-            </div>
-            <div class="mb-8 rounded-2xl bg-white p-8 shadow-lg">
-                <h3 class="mb-6 text-2xl font-semibold text-gray-800">
-                    Order Summary
-                </h3>
-                <div class="mb-6 border-b border-gray-200 pb-6">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="text-geminia-blue text-lg font-semibold">
-                                {{ state.selectedPlan?.name }}
-                            </h4>
-                            <p class="text-gray-600">
-                                {{ state.selectedPlan?.description }}
-                            </p>
-                            <p class="mt-1 text-sm text-gray-500">
-                                {{ state.selectedPlan?.duration }}
-                            </p>
-                        </div>
-                        <div class="ml-4 flex-shrink-0 text-right">
-                            <div class="text-geminia-blue text-2xl font-bold">
-                                {{
-                                    formatCurrency(
-                                        state.selectedPlan?.price || 0
-                                    )
-                                }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-6 border-b border-gray-200 pb-6">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h4 class="text-lg font-semibold text-gray-800">
-                            Traveler Information
-                        </h4>
-                        <button
-                            (click)="goToStep(QuoteStep.TRAVELER_DETAILS)"
-                            class="text-geminia-blue text-sm font-medium hover:underline"
-                        >
-                            Edit
-                        </button>
-                    </div>
-                    <div
-                        class="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2"
-                    >
-                        <div>
-                            <span class="text-gray-500">Name:</span
-                            ><span class="ml-2 font-medium text-gray-800"
-                                >{{ travelerDetails.firstName }}
-                                {{ travelerDetails.lastName }}</span
-                            >
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Email:</span
-                            ><span class="ml-2 font-medium text-gray-800">{{
-                                travelerDetails.email
-                            }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Phone:</span
-                            ><span class="ml-2 font-medium text-gray-800">{{
-                                travelerDetails.phone
-                            }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Passport:</span
-                            ><span class="ml-2 font-medium text-gray-800">{{
-                                travelerDetails.passportNumber
-                            }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Destination:</span
-                            ><span class="ml-2 font-medium text-gray-800">{{
-                                travelerDetails.destination
-                            }}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Travel Dates:</span
-                            ><span class="ml-2 font-medium text-gray-800"
-                                >{{ travelerDetails.departureDate | date }} to
-                                {{ travelerDetails.returnDate | date }}</span
-                            >
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="mt-6 flex items-center justify-between border-t-2 border-gray-200 pt-6 text-xl font-bold"
-                >
-                    <span class="text-gray-800">Total Price</span>
-                    <span class="text-geminia-blue">{{
-                        formatCurrency(state.selectedPlan?.price || 0)
-                    }}</span>
-                </div>
-            </div>
-            <div class="flex flex-col justify-center gap-4 sm:flex-row">
-                <button
-                    (click)="downloadQuote()"
-                    class="btn-select-plan-custom transform rounded-xl px-12 py-4 font-semibold text-white shadow-lg transition-all hover:-translate-y-px hover:shadow-xl"
-                >
-                    Download Quote
-                </button>
-                <button
-                    (click)="proceedToPayment()"
-                    class="btn-select-plan-custom transform rounded-xl px-12 py-4 font-semibold text-white shadow-lg transition-all hover:-translate-y-px hover:shadow-xl"
-                >
-                    Proceed to Payment
-                </button>
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- Benefits Modal -->
-<div
-    *ngIf="state.showBenefitsModal && planForModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm"
-    (click)="closeBenefitsModal()"
->
-    <div
-        class="animate-fade-in-up mx-4 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white p-8 shadow-2xl"
-        (click)="$event.stopPropagation()"
-    >
-        <!-- Modal Header -->
-        <div class="mb-4 flex items-start justify-between border-b pb-4">
-            <div>
-                <h3 class="text-2xl font-bold text-gray-800">
-                    {{ planForModal.name }}
-                </h3>
-                <p class="text-gray-500">
-                    Review the benefits included in this plan.
-                </p>
-            </div>
-            <button
-                (click)="closeBenefitsModal()"
-                class="text-gray-400 transition-colors hover:text-gray-600"
-            >
-                <svg
-                    class="h-7 w-7"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Benefits List -->
-        <div class="my-4 flex-grow space-y-1 overflow-y-auto pr-2">
-            <div
-                *ngFor="let benefit of planForModal.benefits | keyvalue"
-                class="flex cursor-pointer items-center justify-between border-b py-3 text-base transition-all duration-200 last:border-b-0 hover:rounded-lg hover:bg-blue-50 hover:px-2"
-                (mouseenter)="onBenefitHover(benefit.key, $event)"
-                (mouseleave)="onBenefitLeave()"
-            >
-                <span class="text-gray-600">{{ benefit.key }}</span>
-                <span class="ml-4 text-right font-semibold text-gray-800">{{
-                    benefit.value
-                }}</span>
-            </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="mt-auto flex justify-end border-t pt-6">
-            <button
-                (click)="selectPlanAndContinue(planForModal)"
-                class="w-full transform rounded-xl px-8 py-3 font-semibold text-white shadow-lg transition-all hover:-translate-y-px hover:shadow-xl sm:w-auto"
-                style="background-color: #04b2e1"
-                onmouseover="this.style.backgroundColor='#21275c'"
-                onmouseout="this.style.backgroundColor='#04b2e1'"
-            >
-                Select This Plan & Continue
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Benefit Tooltip -->
-<div
-    *ngIf="hoveredBenefit"
-    class="pointer-events-none fixed z-[9999] max-w-xs rounded-lg p-3 text-sm text-white shadow-lg"
-    [style.top.px]="tooltipY"
-    [style.left.px]="tooltipX"
-    style="background-color: #04b2e1"
->
-    <h4 class="mb-1 font-bold">{{ hoveredBenefit }}</h4>
-    <p>{{ getBenefitDescription(hoveredBenefit) }}</p>
-</div>
-
-<!-- M-Pesa Payment Modal -->
-<div
-    *ngIf="state.showPaymentModal"
-    class="fixed inset-0 z-[9998] flex items-center justify-center bg-black bg-opacity-60 p-4 backdrop-blur-sm"
-    (click)="closePaymentModal()"
->
-    <div
-        class="animate-fade-in-up mx-4 w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl"
-        (click)="$event.stopPropagation()"
-    >
-        <div class="mb-6 text-center">
-            <div
-                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100"
-            >
-                <svg
-                    class="h-8 w-8 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    ></path>
-                </svg>
-            </div>
-            <h3 class="mb-2 text-2xl font-bold text-gray-800">
-                M-Pesa Payment
-            </h3>
-            <p class="text-gray-600">
-                A payment request will be sent to your phone.
-            </p>
-        </div>
-        <div class="mb-6 rounded-lg border bg-gray-50 p-4">
-            <div class="mb-2 flex items-center justify-between">
-                <span class="text-gray-600">Amount Due</span
-                ><span class="text-geminia-blue text-lg font-bold">{{
-                    formatCurrency(state.selectedPlan?.price || 0)
-                }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600">Your Phone</span
-                ><span class="font-medium text-gray-800">{{
-                    travelerDetails.phone
-                }}</span>
-            </div>
-        </div>
-        <div class="mb-6 text-center text-sm text-gray-500">
-            Please enter your M-Pesa PIN on your phone to complete the
-            transaction.
-        </div>
-        <div class="flex space-x-4">
-            <button
-                (click)="closePaymentModal()"
-                [disabled]="state.isLoading"
-                class="flex-1 rounded-xl bg-gray-200 px-6 py-3 font-semibold text-gray-800 transition-colors hover:bg-gray-300"
-            >
-                Cancel
-            </button>
-            <button
-                (click)="processPayment()"
-                [disabled]="state.isLoading"
-                class="bg-geminia-navy flex-1 rounded-xl px-6 py-3 font-semibold text-white transition-colors hover:bg-opacity-90 disabled:cursor-wait disabled:opacity-50"
-            >
-                <span *ngIf="!state.isLoading">Confirm Payment</span>
-                <span
-                    *ngIf="state.isLoading"
-                    class="flex items-center justify-center"
-                >
-                    <svg
-                        class="mr-3 h-5 w-5 animate-spin text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        ></circle>
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                    </svg>
-                    Processing...
-                </span>
-            </button>
-        </div>
-    </div>
+  </div>
 </div>

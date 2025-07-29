@@ -2,11 +2,7 @@ import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-
-// CORRECTED: Added MatDialogRef and MAT_DIALOG_DATA to the import line
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-
-// Other Angular Material module imports for the embedded component
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 
-// Added the missing maxWords validator function from the previous step
 export function maxWords(max: number) {
   return (control: AbstractControl): { [key: string]: any } | null => {
     if (!control.value) return null;
@@ -32,15 +27,109 @@ interface MpesaPayment { amount: number; phoneNumber: string; reference: string;
 export interface PaymentResult { success: boolean; method: 'stk' | 'paybill' | 'card'; reference: string; mpesaReceipt?: string; }
 
 
-// --- Embedded Payment Modal Component ---
+// --- Embedded Payment Modal Component (Re-skinned for Fidelity) ---
 @Component({
-  selector: 'app-mpesa-payment-modal-for-quote',
+  selector: 'app-fidelity-payment-modal',
   standalone: true,
   imports: [ CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatProgressSpinnerModule, MatTabsModule ],
-  template: `<div class="payment-modal-container"><div class="modal-header"><div class="header-icon-wrapper"><mat-icon>payment</mat-icon></div><div><h1 mat-dialog-title class="modal-title">Complete Your Payment</h1><p class="modal-subtitle">Pay KES {{ data.amount | number: '1.2-2' }} for {{ data.description }}</p></div><button mat-icon-button (click)="closeDialog()" class="close-button" aria-label="Close dialog"><mat-icon>close</mat-icon></button></div><mat-dialog-content class="modal-content"><mat-tab-group (selectedTabChange)="selectedPaymentMethod = $event.index === 0 ? 'mpesa' : 'card'" animationDuration="300ms" mat-stretch-tabs="true" class="payment-tabs"><mat-tab><ng-template mat-tab-label><div class="tab-label-content"><mat-icon>phone_iphone</mat-icon><span>M-PESA</span></div></ng-template><div class="tab-panel-content"><div class="sub-options"><button (click)="mpesaSubMethod = 'stk'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'stk'"><mat-icon>tap_and_play</mat-icon><span>STK Push</span></button><button (click)="mpesaSubMethod = 'paybill'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'paybill'"><mat-icon>article</mat-icon><span>Use Paybill</span></button></div><div *ngIf="mpesaSubMethod === 'stk'" class="option-view animate-fade-in"><p class="instruction-text">Enter your M-PESA phone number to receive a payment prompt.</p><form [formGroup]="stkForm"><mat-form-field appearance="outline"><mat-label>Phone Number</mat-label><input matInput formControlName="phoneNumber" placeholder="e.g., 0712345678" [disabled]="isProcessingStk"><mat-icon matSuffix>phone_iphone</mat-icon></mat-form-field></form><button mat-raised-button class="action-button" (click)="processStkPush()" [disabled]="stkForm.invalid || isProcessingStk"><mat-spinner *ngIf="isProcessingStk" diameter="24"></mat-spinner><span *ngIf="!isProcessingStk">Pay KES {{ data.amount | number: '1.0-0' }}</span></button></div><div *ngIf="mpesaSubMethod === 'paybill'" class="option-view animate-fade-in"><p class="instruction-text">Use the details below on your M-PESA App to complete payment.</p><div class="paybill-details"><div class="detail-item"><span class="label">Paybill Number:</span><span class="value">853338</span></div><div class="detail-item"><span class="label">Account Number:</span><span class="value account-number">{{ data.reference }}</span></div></div><button mat-raised-button class="action-button" (click)="verifyPaybillPayment()" [disabled]="isVerifyingPaybill"><mat-spinner *ngIf="isVerifyingPaybill" diameter="24"></mat-spinner><span *ngIf="!isVerifyingPaybill">Verify Payment</span></button></div></div></mat-tab><mat-tab><ng-template mat-tab-label><div class="tab-label-content"><mat-icon>credit_card</mat-icon><span>Credit/Debit Card</span></div></ng-template><div class="tab-panel-content animate-fade-in"><div class="card-redirect-info"><p class="instruction-text">You will be redirected to pay via <strong>I&M Bank</strong>, our reliable and trusted payment partner.</p><button mat-raised-button class="action-button" (click)="redirectToCardGateway()" [disabled]="isRedirectingToCard"><mat-spinner *ngIf="isRedirectingToCard" diameter="24"></mat-spinner><span *ngIf="!isRedirectingToCard">Pay Using Credit/Debit Card</span></button></div></div></mat-tab></mat-tab-group></mat-dialog-content></div>`,
-  styles: [`:host { --pantone-306c: #04b2e1; --pantone-2758c: #21275c; --white-color: #ffffff; --light-gray: #f8f9fa; --medium-gray: #e9ecef; --dark-gray: #495057; }.payment-modal-container { background-color: var(--white-color); border-radius: 16px; overflow: hidden; max-width: 450px; }.modal-header { display: flex; align-items: center; padding: 20px 24px; background-color: var(--pantone-2758c); color: var(--white-color); position: relative; }.header-icon-wrapper { width: 48px; height: 48px; background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0; }.header-icon-wrapper mat-icon { color: var(--pantone-306c); font-size: 28px; width: 28px; height: 28px; }.modal-title { font-size: 22px; font-weight: 700; margin: 0; color: var(--white-color); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }.modal-subtitle { font-size: 14px; opacity: 0.8; margin-top: 4px; color: var(--white-color); }.close-button { position: absolute; top: 12px; right: 12px; color: var(--white-color); }.modal-content { padding: 0 !important; }.payment-tabs .tab-label-content { display: flex; align-items: center; gap: 8px; height: 60px; }.tab-panel-content { padding: 24px; }.sub-options { display: flex; gap: 12px; margin-bottom: 24px; border: 1px solid var(--medium-gray); border-radius: 12px; padding: 6px; background-color: var(--light-gray); }.sub-option-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 8px; border: none; background-color: transparent; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--dark-gray); }.sub-option-btn.active { background-color: var(--white-color); color: var(--pantone-306c); }.instruction-text { text-align: center; color: var(--dark-gray); font-size: 15px; margin-bottom: 20px; }mat-form-field { width: 100%; }.action-button { width: 100%; height: 52px; border-radius: 12px; background-color: var(--pantone-2758c) !important; color: var(--white-color) !important; font-size: 16px; font-weight: 700; }.action-button:disabled { background-color: #a0a3c2 !important; color: rgba(255, 255, 255, 0.7) !important; }.paybill-details { background: var(--light-gray); border: 1px dashed var(--medium-gray); border-radius: 12px; padding: 20px; margin-bottom: 24px; }.detail-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; padding: 12px 0; }.detail-item + .detail-item { border-top: 1px solid var(--medium-gray); }.detail-item .label { color: var(--dark-gray); }.detail-item .value { font-weight: 700; }.detail-item .account-number { font-family: 'Courier New', monospace; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 6px; }.card-redirect-info { text-align: center; }.animate-fade-in { animation: fadeIn 0.4s ease-in-out; }@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }::ng-deep .payment-tabs .mat-mdc-tab-header { --mat-tab-header-inactive-ripple-color: rgba(4, 178, 225, 0.1); --mat-tab-header-active-ripple-color: rgba(4, 178, 225, 0.2); }::ng-deep .payment-tabs .mdc-tab__text-label { color: var(--dark-gray); font-weight: 600; }::ng-deep .payment-tabs .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label { color: var(--pantone-306c); }::ng-deep .payment-tabs .mat-mdc-tab-indicator-bar { background-color: var(--pantone-306c) !important; }`]
+  //
+  // UPDATED: New template with a proper header container
+  //
+  template: `
+    <div class="modal-header">
+      <h1 mat-dialog-title class="modal-title">Complete Your Payment</h1>
+      <button mat-icon-button (click)="closeDialog()" class="close-button" aria-label="Close dialog"><mat-icon>close</mat-icon></button>
+    </div>
+    <mat-dialog-content class="modal-content">
+      <p class="modal-subtitle">Pay KES {{ data.amount | number: '1.2-2' }} for {{ data.description }}</p>
+      <mat-tab-group animationDuration="300ms" mat-stretch-tabs="true" class="payment-tabs">
+        <mat-tab>
+          <ng-template mat-tab-label><div class="tab-label-content"><mat-icon>phone_iphone</mat-icon><span>M-PESA</span></div></ng-template>
+          <div class="tab-panel-content">
+            <div class="sub-options">
+              <button (click)="mpesaSubMethod = 'stk'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'stk'"><mat-icon>tap_and_play</mat-icon><span>STK Push</span></button>
+              <button (click)="mpesaSubMethod = 'paybill'" class="sub-option-btn" [class.active]="mpesaSubMethod === 'paybill'"><mat-icon>article</mat-icon><span>Use Paybill</span></button>
+            </div>
+            <div *ngIf="mpesaSubMethod === 'stk'" class="option-view animate-fade-in">
+              <p class="instruction-text">Enter your M-PESA phone number to receive a payment prompt.</p>
+              <form [formGroup]="stkForm">
+                <mat-form-field appearance="outline"><mat-label>Phone Number</mat-label><input matInput formControlName="phoneNumber" placeholder="e.g., 0712345678" [disabled]="isProcessingStk"><mat-icon matSuffix>phone_iphone</mat-icon></mat-form-field>
+              </form>
+              <button mat-raised-button class="action-button" (click)="processStkPush()" [disabled]="stkForm.invalid || isProcessingStk"><mat-spinner *ngIf="isProcessingStk" diameter="24"></mat-spinner><span *ngIf="!isProcessingStk">Pay KES {{ data.amount | number: '1.0-0' }}</span></button>
+            </div>
+            <div *ngIf="mpesaSubMethod === 'paybill'" class="option-view animate-fade-in">
+              <p class="instruction-text">Use the details below on your M-PESA App to complete payment.</p>
+              <div class="paybill-details">
+                <div class="detail-item"><span class="label">Paybill Number:</span><span class="value">853338</span></div>
+                <div class="detail-item"><span class="label">Account Number:</span><span class="value account-number">{{ data.reference }}</span></div>
+              </div>
+              <button mat-raised-button class="action-button" (click)="verifyPaybillPayment()" [disabled]="isVerifyingPaybill"><mat-spinner *ngIf="isVerifyingPaybill" diameter="24"></mat-spinner><span *ngIf="!isVerifyingPaybill">Verify Payment</span></button>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label><div class="tab-label-content"><mat-icon>credit_card</mat-icon><span>Credit/Debit Card</span></div></ng-template>
+          <div class="tab-panel-content animate-fade-in">
+            <div class="card-redirect-info"><p class="instruction-text">You will be redirected to pay via our reliable and trusted payment partner.</p><button mat-raised-button class="action-button" (click)="redirectToCardGateway()" [disabled]="isRedirectingToCard"><mat-spinner *ngIf="isRedirectingToCard" diameter="24"></mat-spinner><span *ngIf="!isRedirectingToCard">Pay Using Credit/Debit Card</span></button></div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-dialog-content>
+  `,
+  //
+  // UPDATED: Styles for the new header structure
+  //
+  styles: [`
+    :host {
+      --fidelity-turquoise: #037B7C;
+      --fidelity-lime: #B8D87A;
+      --fidelity-white: #ffffff;
+      --light-gray: #f8f9fa;
+      --medium-gray: #e9ecef;
+      --dark-gray: #495057;
+      --dark-text: #1f2937;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 12px 24px; background-color: var(--fidelity-turquoise); color: var(--fidelity-white); }
+    .modal-title { font-size: 20px; font-weight: 600; margin: 0; color: var(--fidelity-white); }
+    .close-button { color: var(--fidelity-white); }
+    .modal-content { padding: 24px !important; }
+    .modal-subtitle { font-size: 14px; color: var(--dark-gray); margin-bottom: 20px; text-align: center; }
+    .payment-tabs .tab-label-content { display: flex; align-items: center; gap: 8px; height: 60px; }
+    .tab-panel-content { padding-top: 24px; }
+    .sub-options { display: flex; gap: 12px; margin-bottom: 24px; border: 1px solid var(--medium-gray); border-radius: 12px; padding: 6px; background-color: var(--light-gray); }
+    .sub-option-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 8px; border: none; background-color: transparent; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--dark-gray); }
+    .sub-option-btn.active { background-color: var(--fidelity-turquoise); color: var(--fidelity-white); }
+    .instruction-text { text-align: center; color: var(--dark-gray); font-size: 15px; margin-bottom: 20px; }
+    mat-form-field { width: 100%; }
+    .action-button { width: 100%; height: 52px; border-radius: 12px; background-color: var(--fidelity-turquoise) !important; color: var(--fidelity-white) !important; font-size: 16px; font-weight: 700; transition: all 0.3s ease; }
+    .action-button:hover:not(:disabled) { background-color: var(--fidelity-lime) !important; color: var(--dark-text) !important; transform: translateY(-2px); }
+    .action-button:disabled { background-color: #a0a3c2 !important; color: rgba(255, 255, 255, 0.7) !important; cursor: not-allowed; }
+    .paybill-details { background: var(--light-gray); border: 1px dashed var(--medium-gray); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .detail-item { display: flex; justify-content: space-between; align-items: center; font-size: 16px; padding: 12px 0; }
+    .detail-item + .detail-item { border-top: 1px solid var(--medium-gray); }
+    .detail-item .label { color: var(--dark-gray); }
+    .detail-item .value { font-weight: 700; }
+    .detail-item .account-number { font-family: 'Courier New', monospace; background-color: var(--medium-gray); padding: 4px 8px; border-radius: 6px; }
+    .card-redirect-info { text-align: center; }
+    .animate-fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    ::ng-deep .payment-tabs .mat-mdc-tab-header { --mat-tab-header-inactive-ripple-color: rgba(3, 123, 124, 0.1); --mat-tab-header-active-ripple-color: rgba(3, 123, 124, 0.2); }
+    ::ng-deep .payment-tabs .mdc-tab__text-label { color: var(--dark-gray); font-weight: 600; }
+    ::ng-deep .payment-tabs .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label { color: var(--fidelity-turquoise); }
+    ::ng-deep .payment-tabs .mat-mdc-tab-indicator-bar { background-color: var(--fidelity-turquoise) !important; }
+  `]
 })
-export class MpesaPaymentModalComponent implements OnInit { stkForm: FormGroup; selectedPaymentMethod: 'mpesa' | 'card' = 'mpesa'; mpesaSubMethod: 'stk' | 'paybill' = 'stk'; isProcessingStk = false; isVerifyingPaybill = false; isRedirectingToCard = false; constructor(private fb: FormBuilder, public dialogRef: MatDialogRef<MpesaPaymentModalComponent>, @Inject(MAT_DIALOG_DATA) public data: MpesaPayment) { this.stkForm = this.fb.group({ phoneNumber: [data.phoneNumber || '', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], }); } ngOnInit(): void {} closeDialog(result: PaymentResult | null = null): void { this.dialogRef.close(result); } processStkPush(): void { if (this.stkForm.invalid) return; this.isProcessingStk = true; setTimeout(() => { this.isProcessingStk = false; this.closeDialog({ success: true, method: 'stk', reference: this.data.reference, mpesaReceipt: 'S' + Math.random().toString(36).substring(2, 12).toUpperCase() }); }, 3000); } verifyPaybillPayment(): void { this.isVerifyingPaybill = true; setTimeout(() => { this.isVerifyingPaybill = false; this.closeDialog({ success: true, method: 'paybill', reference: this.data.reference }); }, 3500); } redirectToCardGateway(): void { this.isRedirectingToCard = true; setTimeout(() => { this.isRedirectingToCard = false; console.log('Redirecting to I&M Bank payment gateway...'); this.closeDialog({ success: true, method: 'card', reference: this.data.reference }); }, 2000); } }
+export class MpesaPaymentModalComponent {
+    stkForm: FormGroup;
+    selectedPaymentMethod: 'mpesa' | 'card' = 'mpesa';
+    mpesaSubMethod: 'stk' | 'paybill' = 'stk';
+    isProcessingStk = false; isVerifyingPaybill = false; isRedirectingToCard = false;
+    constructor(private fb: FormBuilder, public dialogRef: MatDialogRef<MpesaPaymentModalComponent>, @Inject(MAT_DIALOG_DATA) public data: MpesaPayment) { this.stkForm = this.fb.group({ phoneNumber: [data.phoneNumber || '', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], }); }
+    closeDialog(result: PaymentResult | null = null): void { this.dialogRef.close(result); }
+    processStkPush(): void { if (this.stkForm.invalid) return; this.isProcessingStk = true; setTimeout(() => { this.isProcessingStk = false; this.closeDialog({ success: true, method: 'stk', reference: this.data.reference, mpesaReceipt: 'S' + Math.random().toString(36).substring(2, 12).toUpperCase() }); }, 3000); }
+    verifyPaybillPayment(): void { this.isVerifyingPaybill = true; setTimeout(() => { this.isVerifyingPaybill = false; this.closeDialog({ success: true, method: 'paybill', reference: this.data.reference }); }, 3500); }
+    redirectToCardGateway(): void { this.isRedirectingToCard = true; setTimeout(() => { this.isRedirectingToCard = false; this.closeDialog({ success: true, method: 'card', reference: this.data.reference }); }, 2000); }
+}
 
 class AuthService { private _loggedIn = true; isLoggedIn(): boolean { return this._loggedIn; } setLoginStatus(status: boolean) { this._loggedIn = status; } }
 
@@ -62,7 +151,6 @@ export class MarineCargoQuotationComponent implements OnInit {
     readonly marineCargoTypes: string[] = ['Pharmaceuticals', 'Electronics', 'Apparel', 'Vehicles', 'Machinery', 'General Goods'];
     readonly blacklistedCountries: string[] = ['Russia', 'Ukraine', 'North Korea', 'Syria', 'Iran', 'Yemen', 'Sudan', 'Somalia'];
     readonly allCountriesList: string[] = [ 'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Australia', 'Austria', 'Bangladesh', 'Belgium', 'Brazil', 'Canada', 'China', 'Denmark', 'Egypt', 'Finland', 'France', 'Germany', 'Ghana', 'Greece', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Japan', 'Kenya', 'Mexico', 'Netherlands', 'New Zealand', 'Nigeria', 'North Korea', 'Norway', 'Pakistan', 'Russia', 'Saudi Arabia', 'Somalia', 'South Africa', 'Spain', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Tanzania', 'Turkey', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States of America', 'Yemen', 'Zambia', 'Zimbabwe'];
-    // CORRECTED: Removed PHCF from this constant as its calculation is now different.
     private readonly TAX_RATES = { TRAINING_LEVY: 0.0025, STAMP_DUTY: 40, COMMISSION_RATE: 0.10 };
 
     constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog) {
@@ -84,7 +172,6 @@ export class MarineCargoQuotationComponent implements OnInit {
         const rate = selectedProduct ? selectedProduct.rate : 0;
         const basePremium = sumInsured * rate;
         const { TRAINING_LEVY, STAMP_DUTY, COMMISSION_RATE } = this.TAX_RATES;
-        // CORRECTED: PHCF is now 5% of the total value of marine cargo (sumInsured).
         const phcf = sumInsured * 0.05;
         const trainingLevy = basePremium * TRAINING_LEVY;
         const commission = this.currentUser.type === 'intermediary' ? basePremium * COMMISSION_RATE : 0;
@@ -99,9 +186,24 @@ export class MarineCargoQuotationComponent implements OnInit {
     onSubmit(): void { if (this.quotationForm.valid) { if (!this.showHighRiskModal && !this.showExportModal) { this.calculatePremium(); this.goToStep(2); } } else { this.quotationForm.markAllAsTouched(); } }
     downloadQuote(): void { if (this.clientDetailsForm.valid) { this.showToast('Quote download initiated successfully.'); } }
     handlePayment(): void { if (!this.clientDetailsForm.valid) { this.clientDetailsForm.markAllAsTouched(); return; } if (this.isLoggedIn) { this.openPaymentModal(); } else { this.router.navigate(['/']); } }
-    private openPaymentModal(): void { const dialogRef = this.dialog.open(MpesaPaymentModalComponent, { data: { amount: this.premiumCalculation.totalPayable, phoneNumber: this.clientDetailsForm.get('phoneNumber')?.value, reference: `GEM${Date.now()}`, description: 'Marine Insurance' } }); dialogRef.afterClosed().subscribe((result: PaymentResult | null) => { if (result?.success) { this.showToast('Payment successful! Your certificate is ready.', 'success'); setTimeout(() => this.downloadCertificate(), 1500); } }); }
+    private openPaymentModal(): void {
+      const dialogRef = this.dialog.open(MpesaPaymentModalComponent, {
+        data: {
+          amount: this.premiumCalculation.totalPayable,
+          phoneNumber: this.clientDetailsForm.get('phoneNumber')?.value,
+          reference: `FID${Date.now()}`,
+          description: 'Marine Insurance'
+        }
+      });
+      dialogRef.afterClosed().subscribe((result: PaymentResult | null) => {
+        if (result?.success) {
+          this.showToast('Payment successful! Your certificate is ready.', 'success');
+          setTimeout(() => this.downloadCertificate(), 1500);
+        }
+      });
+    }
     downloadCertificate(): void { this.showToast("Your policy certificate has been downloaded.", 'success'); console.log("Certificate download process initiated."); setTimeout(() => this.closeForm(), 2000); }
-    closeForm(): void { if (this.isLoggedIn) { this.router.navigate(['/sign-up/dashboard']); } else { this.router.navigate(['/']); } }
+    closeForm(): void { if (this.isLoggedIn) { this.router.navigate(['/dashboard']); } else { this.router.navigate(['/']); } }
     getToday(): string { return new Date().toISOString().split('T')[0]; }
     noPastDatesValidator(control: AbstractControl): { [key: string]: boolean } | null { if (!control.value) return null; return control.value < new Date().toISOString().split('T')[0] ? { pastDate: true } : null; }
     goToStep(step: number): void { this.currentStep = step; }

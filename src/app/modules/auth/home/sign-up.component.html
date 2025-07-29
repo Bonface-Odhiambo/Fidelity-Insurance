@@ -1,402 +1,163 @@
-<div class="relative flex h-screen w-screen flex-col overflow-hidden">
-  <!-- Inline Alert for form errors -->
-  <div
-    class="absolute top-0 z-50 w-full p-4 sm:p-8"
-    *ngIf="showAlert && alert.position === 'inline'"
-  >
+<div class="fidelity-signup-wrapper">
+  <!-- Alerts -->
+  <div class="alert-container-inline" *ngIf="showAlert && alert.position === 'inline'">
     <fuse-alert
       class="w-full"
       [appearance]="'fill'"
       [showIcon]="true"
       [type]="alert.type"
-      [@shake]="alert.type === 'error'"
-    >
+      [@shake]="alert.type === 'error'">
       {{ alert.message }}
     </fuse-alert>
   </div>
-
-  <!-- Bottom Toast Alert for success messages -->
-  <div
-    class="absolute bottom-8 left-1/2 z-50 -translate-x-1/2"
-    *ngIf="showAlert && alert.position === 'bottom'"
-  >
+  <div class="alert-container-bottom" *ngIf="showAlert && alert.position === 'bottom'">
     <fuse-alert
       class="custom-toast"
       [appearance]="'fill'"
       [showIcon]="true"
-      [type]="alert.type"
-    >
+      [type]="alert.type">
       {{ alert.message }}
     </fuse-alert>
   </div>
 
-  <div
-    class="flex min-w-0 flex-auto flex-col items-center sm:flex-row sm:justify-center md:items-start md:justify-start"
-  >
-    <!-- Geminia Get Quote Portal (Left) -->
-    <div
-      class="relative hidden min-h-screen w-1/2 flex-auto items-center justify-center overflow-hidden p-16 md:flex lg:px-28 dark:border-r"
-      style="background-color: #04b2e1"
-    >
-      <!-- Background -->
-      <div class="absolute inset-0 overflow-hidden">
-        <div
-          class="absolute -left-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-white/10 blur-xl"
-        ></div>
-        <div
-          class="absolute -right-20 top-1/3 h-60 w-60 animate-bounce rounded-full bg-white/5 blur-2xl"
-          style="animation-duration: 3s"
-        ></div>
-      </div>
+  <!-- Left Branding Panel -->
+  <div class="fidelity-brand-panel">
+    <div class="brand-content">
+      <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Insurance Logo" class="brand-logo" />
+      <h1 class="brand-title">Insurance you can trust.</h1>
+      <p class="brand-subtitle">Get a quick quote — no login required.</p>
 
-      <!-- Content -->
-      <div class="relative z-10 w-full max-w-2xl">
-        <div class="mb-8 flex justify-center">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROTKn0j9cVpA67LPdjPeYBR3KnWiwP1gsM3cS27rca-7m8BgvgUylY4uhBnOnVnXFx8Is&usqp=CAU"
-            alt="Geminia Insurance Logo"
-            class="h-16 w-auto rounded-lg object-contain"
-            style="mix-blend-mode: multiply; background: transparent"
-          />
-        </div>
-        <div
-          class="mb-2 text-center text-6xl font-bold leading-tight text-white"
-        >
-          <div
-            class="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent"
-          >
-            Geminia Insurance
+      <div class="quote-cards">
+        <div class="quote-card-item">
+          <div>
+            <h3>Golfers Insurance</h3>
+            <p>Cover for your equipment & liability.</p>
           </div>
+          <a href="/sign-up/golfers-quote">Get Quote</a>
         </div>
-        <div
-          class="mt-6 max-w-lg text-center text-lg leading-relaxed text-white/90"
-        >
-          Get a quick quote —no login required.
+        <div class="quote-card-item">
+          <div>
+            <h3>Marine Insurance</h3>
+            <p>Protect your vessels & cargo.</p>
+          </div>
+          <a href="sign-up/marine-quote" class="cursor-pointer">Get Quote</a>
         </div>
-
-        <!-- Insurance Cards -->
-        <div class="mt-10 space-y-6">
-          <div
-            class="group rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/15"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-lg font-semibold text-white">
-                  Marine Insurance
-                </h3>
-                <p class="text-sm text-white/70">
-                  Protect your vessels & cargo
-                </p>
-              </div>
-              <a href="/sign-up/marine-quote"
-                class="cursor-pointer rounded-xl bg-black px-6 py-2 font-medium text-white shadow-lg transition-all duration-200 hover:bg-gray-800"
-              >
-                Get Quote
-              </a>
-            </div>
+        <div class="quote-card-item">
+          <div>
+            <h3>Travel Insurance</h3>
+            <p>Comprehensive travel coverage.</p>
           </div>
-          <div
-            class="group rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/15"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-lg font-semibold text-white">
-                  Travel Insurance
-                </h3>
-                <p class="text-sm text-white/70">
-                  Comprehensive travel coverage
-                </p>
-              </div>
-              <a href= "/sign-up/travel-quote"
-                class="cursor-pointer rounded-xl bg-black px-6 py-2 font-medium text-white shadow-lg transition-all duration-200 hover:bg-gray-800"
-              >
-                Get Quote
-              </a>
-            </div>
-          </div>
+          <a href="sign-up/travel-quote" class="cursor-pointer">Get Quote</a>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Login/Register Form (Right) -->
-    <div
-      class="relative flex h-screen w-full flex-auto flex-col items-center justify-center overflow-y-auto bg-white p-6 sm:py-8 sm:px-12 md:w-1/2"
-    >
-      <div class="w-full max-w-sm">
-        <!-- Login Form -->
-        <div *ngIf="formType === 'login'" class="animate-fade-in">
-          <div class="mb-8 text-center">
-            <div class="text-2xl font-bold text-gray-800">
-              Geminia Insurance
-            </div>
-            <div class="mt-1 text-sm text-gray-500">
-              Sign in to the Geminia Insurance Platform
-            </div>
-          </div>
-          <form [formGroup]="signInForm" (ngSubmit)="signIn()">
-            <div class="mb-4">
-              <label class="mb-2 block text-sm font-medium text-gray-700"
-                >Email Address</label
-              >
-              <input
-                type="email"
-                class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                formControlName="username"
-                placeholder="your-email@geminia.com"
-              />
-            </div>
-            <div class="mb-4">
-              <label class="mb-2 block text-sm font-medium text-gray-700"
-                >Password</label
-              >
-              <div class="relative">
-                <input
-                  [type]="showPassword ? 'text' : 'password'"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="password"
-                  placeholder="Password"
-                />
-                <button
-                  type="button"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  (click)="togglePasswordVisibility()"
-                >
-                  <mat-icon class="text-base">{{
-                    showPassword ? 'visibility_off' : 'visibility'
-                  }}</mat-icon>
-                </button>
-              </div>
-            </div>
-            <button
-              type="submit"
-              class="mt-6 w-full rounded-md py-2.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-              [ngClass]="{
-                'bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500':
-                  signInForm.valid,
-                'bg-gray-200 text-gray-500 cursor-not-allowed':
-                  signInForm.invalid || signInForm.disabled
-              }"
-              [disabled]="signInForm.invalid || signInForm.disabled"
-            >
-              <div *ngIf="!signInForm.disabled; else signingIn">Sign In</div>
-              <ng-template #signingIn>
-                <div class="flex items-center justify-center">
-                  <mat-progress-spinner
-                    [diameter]="20"
-                    mode="indeterminate"
-                    class="mr-2"
-                  ></mat-progress-spinner>
-                  <span>Signing in...</span>
-                </div>
-              </ng-template>
-            </button>
-          </form>
-          <div class="mt-6 flex items-center justify-between text-sm">
-            <a
-              class="font-medium text-sky-500 hover:underline"
-              routerLink="/forgot-password"
-            >
-              Forgot password?
-            </a>
-            <div>
-              <span class="text-gray-600">No account?</span>
-              <a
-                class="ml-1 cursor-pointer font-medium text-sky-500 hover:underline"
-                (click)="formType = 'register'"
-              >
-                Register here
-              </a>
-            </div>
-          </div>
+  <!-- Right Form Panel -->
+  <div class="fidelity-form-panel">
+    <div class="form-container">
+
+      <!-- Login Form -->
+      <div *ngIf="formType === 'login'" class="animate-fade-in">
+        <div class="form-header">
+          <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Insurance Logo" class="form-logo" />
+          <h2>Welcome Back</h2>
+          <p>Sign in to the Fidelity Insurance Platform</p>
         </div>
 
-        <!-- Registration Form -->
-        <div *ngIf="formType === 'register'" class="animate-fade-in">
-          <div class="mb-8 text-center">
-            <div class="text-2xl font-bold text-gray-800">
-              Create Your Account
-            </div>
-            <div class="mt-1 text-sm text-gray-500">
-              Fill in the details below to get started
+        <form [formGroup]="signInForm" (ngSubmit)="signIn()">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" formControlName="username" placeholder="your-email@fidelity.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="password-input-wrapper">
+              <input [type]="showPassword ? 'text' : 'password'" class="form-input" formControlName="password" placeholder="Password">
+              <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()">
+                <mat-icon class="text-base">{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </div>
           </div>
-          <form [formGroup]="registerForm" (ngSubmit)="register()">
-            <div class="mb-4">
-              <label class="mb-2 block text-sm font-medium text-gray-700"
-                >Account Type</label
-              >
-              <mat-radio-group
-                class="flex space-x-4"
-                formControlName="accountType"
-              >
-                <mat-radio-button value="individual"
-                  >Individual</mat-radio-button
-                >
-                <mat-radio-button value="intermediary"
-                  >Intermediary</mat-radio-button
-                >
-              </mat-radio-group>
+
+          <div class="mt-6 flex items-center justify-end text-sm">
+            <a class="form-link" routerLink="/forgot-password">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-primary mt-4" [disabled]="signInForm.invalid || signInForm.disabled">
+            <div *ngIf="!signInForm.disabled; else signingIn">Sign In</div>
+            <ng-template #signingIn>
+              <mat-progress-spinner [diameter]="20" mode="indeterminate"></mat-progress-spinner>
+              <span>Signing in...</span>
+            </ng-template>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <span>No account?</span>
+          <a class="form-link ml-1" (click)="formType = 'register'">Register here</a>
+        </div>
+      </div>
+
+      <!-- Registration Form -->
+      <div *ngIf="formType === 'register'" class="animate-fade-in">
+        <div class="form-header">
+          <img src="https://i.imgur.com/lP1pS4o.png" alt="Fidelity Insurance Logo" class="form-logo" />
+          <h2>Create Your Fidelity Account</h2>
+          <p>Fill in the details below to get started</p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="register()">
+            <div class="form-group">
+                <label class="form-label">Account Type</label>
+                <mat-radio-group formControlName="accountType">
+                    <mat-radio-button value="individual">Individual</mat-radio-button>
+                    <mat-radio-button value="intermediary">Intermediary</mat-radio-button>
+                </mat-radio-group>
             </div>
 
             <!-- Individual Fields -->
             <div *ngIf="registerForm.get('accountType').value === 'individual'">
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >Full Name</label
-                >
-                <input
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="fullName"
-                  placeholder="Full Name"
-                />
-              </div>
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >Email Address</label
-                >
-                <input
-                  type="email"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="email"
-                  placeholder="Email Address"
-                />
-              </div>
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >KRA PIN</label
-                >
-                <input
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="kraPin"
-                  placeholder="KRA PIN"
-                />
-              </div>
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >Phone Number</label
-                >
-                <input
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="phoneNumber"
-                  placeholder="Phone Number"
-                />
-              </div>
+              <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" formControlName="fullName" placeholder="Full Name"></div>
+              <div class="form-group"><label class="form-label">Email Address</label><input type="email" class="form-input" formControlName="email" placeholder="Email Address"></div>
+              <div class="form-group"><label class="form-label">KRA PIN</label><input type="text" class="form-input" formControlName="kraPin" placeholder="KRA PIN"></div>
+              <div class="form-group"><label class="form-label">Phone Number</label><input type="text" class="form-input" formControlName="phoneNumber" placeholder="Phone Number"></div>
             </div>
 
             <!-- Intermediary Fields -->
-            <div
-              *ngIf="registerForm.get('accountType').value === 'intermediary'"
-            >
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >Intermediary - IRA Number</label
-                >
-                <input
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="iraNumber"
-                  placeholder="IRA Number"
-                />
-              </div>
-              <div class="mb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700"
-                  >PIN Number</label
-                >
-                <input
-                  type="text"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="pinNumber"
-                  placeholder="PIN Number"
-                />
-              </div>
+            <div *ngIf="registerForm.get('accountType').value === 'intermediary'">
+                <div class="form-group"><label class="form-label">Intermediary - IRA Number</label><input type="text" class="form-input" formControlName="iraNumber" placeholder="IRA Number"></div>
+                <div class="form-group"><label class="form-label">PIN Number</label><input type="text" class="form-input" formControlName="pinNumber" placeholder="PIN Number"></div>
             </div>
 
             <!-- Common Fields -->
-            <div class="mb-4">
-              <label class="mb-2 block text-sm font-medium text-gray-700"
-                >Password</label
-              >
-              <div class="relative">
-                <input
-                  [type]="showPassword ? 'text' : 'password'"
-                  class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                  formControlName="password"
-                  placeholder="Password"
-                  required
-                />
-                <button
-                  type="button"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  (click)="togglePasswordVisibility()"
-                >
-                  <mat-icon class="text-base">{{
-                    showPassword ? 'visibility_off' : 'visibility'
-                  }}</mat-icon>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="password-input-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" class="form-input" formControlName="password" placeholder="Create a password" required>
+                <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()">
+                    <mat-icon class="text-base">{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
               </div>
             </div>
 
-            <!-- UPDATED: Single Agreement Checkbox -->
             <div class="mt-6 flex items-center">
-              <mat-checkbox
-                formControlName="agreementAccepted"
-                id="agreement"
-                class="flex-shrink-0"
-              ></mat-checkbox>
-              <label for="agreement" class="ml-2 text-sm text-gray-600">
-                I agree to the
-                <a
-                  href="javascript:void(0);"
-                  class="font-medium text-sky-500 hover:underline"
-                  >Terms of Service</a
-                >
-                and
-                <a
-                  href="javascript:void(0);"
-                  class="font-medium text-sky-500 hover:underline"
-                  >Data Privacy Policy</a
-                >.
-              </label>
+              <mat-checkbox formControlName="agreementAccepted" id="agreement" class="flex-shrink-0"></mat-checkbox>
+              <label for="agreement" class="ml-2">I agree to the <a href="javascript:void(0);" class="form-link">Terms</a> and <a href="javascript:void(0);" class="form-link">Privacy Policy</a>.</label>
             </div>
 
-            <button
-              type="submit"
-              class="mt-6 w-full rounded-md py-2.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-              [ngClass]="{
-                'bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500':
-                  registerForm.valid,
-                'bg-gray-200 text-gray-500 cursor-not-allowed':
-                  registerForm.invalid || registerForm.disabled
-              }"
-              [disabled]="registerForm.invalid || registerForm.disabled"
-            >
-              <div *ngIf="!registerForm.disabled; else registering">
-                Create Account
-              </div>
+            <button type="submit" class="btn-primary mt-6" [disabled]="registerForm.invalid || registerForm.disabled">
+              <div *ngIf="!registerForm.disabled; else registering">Create Account</div>
               <ng-template #registering>
-                <div class="flex items-center justify-center">
-                  <mat-progress-spinner
-                    [diameter]="20"
-                    mode="indeterminate"
-                    class="mr-2"
-                  ></mat-progress-spinner>
-                  <span>Creating account...</span>
-                </div>
+                <mat-progress-spinner [diameter]="20" mode="indeterminate"></mat-progress-spinner>
+                <span>Creating account...</span>
               </ng-template>
             </button>
-          </form>
-          <div class="mt-6 text-center text-sm">
-            <span class="text-gray-600">Already have an account?</span>
-            <a
-              class="ml-1 cursor-pointer font-medium text-sky-500 hover:underline"
-              (click)="formType = 'login'"
-            >
-              Sign In
-            </a>
-          </div>
+        </form>
+
+        <div class="form-footer">
+          <span>Already have an account?</span>
+          <a class="form-link ml-1" (click)="formType = 'login'">Sign In</a>
         </div>
       </div>
     </div>

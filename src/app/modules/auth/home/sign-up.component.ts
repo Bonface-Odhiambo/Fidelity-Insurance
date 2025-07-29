@@ -26,11 +26,11 @@ import {
   trigger,
 } from '@angular/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
-import { QuoteModalComponent } from '../shared';
+import { QuoteModalComponent } from '../shared'; // Assuming this path is correct
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'auth-sign-up',
+  selector: 'fidelity-auth-signup',
   standalone: true,
   imports: [
     CommonModule,
@@ -59,7 +59,7 @@ import { Subject, takeUntil } from 'rxjs';
     ]),
   ],
 })
-export class AuthSignUpComponent implements OnInit, OnDestroy {
+export class FidelityAuthSignUpComponent implements OnInit, OnDestroy {
   private _formBuilder = inject(FormBuilder);
   private _router = inject(Router);
   private _dialog = inject(MatDialog);
@@ -68,12 +68,12 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
 
   private readonly VALID_USERS = [
     {
-      username: 'individual@geminia.com',
+      username: 'individual@fidelity.com',
       password: 'password123',
       type: 'individual',
     },
     {
-      username: 'intermediary@geminia.com',
+      username: 'intermediary@fidelity.com',
       password: 'password456',
       type: 'intermediary',
     },
@@ -119,7 +119,6 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
         this.updateValidators(type);
       });
 
-    // Set initial validators
     this.updateValidators('individual');
   }
 
@@ -134,41 +133,23 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
 
   signIn(): void {
     if (this.signInForm.invalid) {
-      this.triggerAlert(
-        'error',
-        'Please fill in all required fields.',
-        'inline'
-      );
+      this.triggerAlert('error', 'Please fill in all required fields.', 'inline');
       return;
     }
-
     this.signInForm.disable();
     this.showAlert = false;
-
-    setTimeout(() => {
-      this.handleCredentialAuthentication();
-    }, 1500);
+    setTimeout(() => this.handleCredentialAuthentication(), 1500);
   }
 
   register(): void {
     if (this.registerForm.invalid) {
-      this.triggerAlert(
-        'error',
-        'Please fill in all required fields and accept the policies.',
-        'inline'
-      );
+      this.triggerAlert('error', 'Please fill all fields and accept the policies.', 'inline');
       return;
     }
-
     this.registerForm.disable();
     this.showAlert = false;
-
     setTimeout(() => {
-      this.triggerAlert(
-        'success',
-        'Account created successfully! You can now sign in.',
-        'bottom'
-      );
+      this.triggerAlert('success', 'Account created! You can now sign in.', 'bottom');
       this.formType = 'login';
       this.registerForm.enable();
       this.registerForm.reset({ accountType: 'individual' });
@@ -185,31 +166,21 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
     );
 
     if (user) {
-      this.triggerAlert(
-        'success',
-        'Sign in successful! Redirecting...',
-        'bottom'
-      );
-      setTimeout(() => this._router.navigate(['/sign-up/dashboard']), 2000);
+      this.triggerAlert('success', 'Sign in successful! Redirecting...', 'bottom');
+      //
+      // UPDATED: Redirect to the correct dashboard path
+      //
+      setTimeout(() => this._router.navigate(['/dashboard']), 2000);
     } else {
-      this.triggerAlert(
-        'error',
-        'Invalid credentials. Please try again.',
-        'inline'
-      );
+      this.triggerAlert('error', 'Invalid credentials. Please try again.', 'inline');
       this.signInForm.enable();
     }
   }
 
-  private triggerAlert(
-    type: FuseAlertType,
-    message: string,
-    position: 'inline' | 'bottom'
-  ): void {
+  private triggerAlert(type: FuseAlertType, message: string, position: 'inline' | 'bottom'): void {
     this.alert = { type, message, position };
     this.showAlert = true;
     this._cd.markForCheck();
-
     setTimeout(() => {
       this.showAlert = false;
       this._cd.markForCheck();
@@ -221,34 +192,20 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
     const intermediaryControls = ['iraNumber', 'pinNumber'];
 
     if (accountType === 'individual') {
-      individualControls.forEach((controlName) =>
-        this.registerForm.get(controlName).setValidators([Validators.required])
-      );
-      intermediaryControls.forEach((controlName) =>
-        this.registerForm.get(controlName).clearValidators()
-      );
+      individualControls.forEach((control) => this.registerForm.get(control).setValidators([Validators.required]));
+      intermediaryControls.forEach((control) => this.registerForm.get(control).clearValidators());
     } else {
-      intermediaryControls.forEach((controlName) =>
-        this.registerForm.get(controlName).setValidators([Validators.required])
-      );
-      individualControls.forEach((controlName) =>
-        this.registerForm.get(controlName).clearValidators()
-      );
+      intermediaryControls.forEach((control) => this.registerForm.get(control).setValidators([Validators.required]));
+      individualControls.forEach((control) => this.registerForm.get(control).clearValidators());
     }
 
-    // Update validity for all controls
-    Object.keys(this.registerForm.controls).forEach((key) => {
-      this.registerForm.get(key).updateValueAndValidity({ emitEvent: false });
+    Object.keys(this.registerForm.controls).forEach(key => {
+        this.registerForm.get(key).updateValueAndValidity({ emitEvent: false });
     });
   }
 
-  navigateToMarineQuote(): void {
-    this.openQuoteModal('marine');
-  }
-
-  navigateToTravelQuote(): void {
-    this.openQuoteModal('travel');
-  }
+  navigateToMarineQuote(): void { this.openQuoteModal('marine'); }
+  navigateToTravelQuote(): void { this.openQuoteModal('travel'); }
 
   private openQuoteModal(insuranceType: 'marine' | 'travel'): void {
     const dialogRef = this._dialog.open(QuoteModalComponent, {
@@ -259,11 +216,7 @@ export class AuthSignUpComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.success) {
-        this.triggerAlert(
-          'success',
-          `Your ${insuranceType} insurance quote request was submitted. We will contact you shortly.`,
-          'bottom'
-        );
+        this.triggerAlert('success', `Your ${insuranceType} quote request was submitted. We'll be in touch!`, 'bottom');
       }
     });
   }
