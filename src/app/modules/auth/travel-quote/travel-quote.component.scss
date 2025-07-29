@@ -39,20 +39,24 @@ input, select, textarea {
 /* --- Plan Selector (Radio Buttons) --- */
 .plan-selector {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
 
-  @media (min-width: 768px) {
+  @media (min-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
+  }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   label {
     position: relative;
     border: 2px solid $fidelity-border-gray;
     border-radius: 0.75rem;
-    padding: 1rem;
+    padding: 1.25rem;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    display: flex; // To make the card height consistent
 
     &:hover {
       border-color: $fidelity-lime;
@@ -69,22 +73,48 @@ input, select, textarea {
       box-shadow: 0 0 0 2px $fidelity-turquoise;
       background-color: rgba($fidelity-turquoise, 0.05);
 
-      .plan-name {
-        color: $fidelity-turquoise;
-      }
+      .plan-name { color: $fidelity-turquoise; }
     }
   }
 
   .plan-card {
-    text-align: center;
+    text-align: left;
+    width: 100%;
     .plan-name {
-      font-weight: 600;
+      font-size: 1.125rem;
+      font-weight: 700;
       color: $fidelity-dark-text;
       margin-bottom: 0.25rem;
     }
     .plan-description {
       font-size: 0.8rem;
       color: $fidelity-medium-text;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid $fidelity-border-gray;
+      padding-bottom: 1rem;
+    }
+
+    // --- NEW STYLES FOR BENEFITS LIST ---
+    .plan-benefits {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      space-y: 0.5rem;
+      
+      li {
+        display: flex;
+        align-items: center;
+        font-size: 0.8rem;
+        color: $fidelity-medium-text;
+
+        mat-icon {
+          font-size: 1rem;
+          width: 1rem;
+          height: 1rem;
+          margin-right: 0.5rem;
+          color: $fidelity-lime;
+        }
+      }
     }
   }
 }
@@ -106,13 +136,8 @@ input, select, textarea {
     gap: 0.5rem 1rem;
     font-size: 0.9rem;
     
-    .label {
-      color: $fidelity-medium-text;
-    }
-    .value {
-      font-weight: 500;
-      color: $fidelity-dark-text;
-    }
+    .label { color: $fidelity-medium-text; }
+    .value { font-weight: 500; color: $fidelity-dark-text; }
   }
 }
 
@@ -131,9 +156,7 @@ input, select, textarea {
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  td {
-    font-size: 0.9rem;
-  }
+  td { font-size: 0.9rem; }
 }
 
 /* --- Animations --- */

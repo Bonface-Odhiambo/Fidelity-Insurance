@@ -51,56 +51,67 @@
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Start Date<span class="text-red-500">*</span></label><input type="date" formControlName="startDate" [min]="getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">End Date<span class="text-red-500">*</span></label><input type="date" formControlName="endDate" [min]="quotationForm.get('startDate')?.value || getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Number of Travelers<span class="text-red-500">*</span></label><input type="number" formControlName="numTravelers" min="1" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Destination Area<span class="text-red-500">*</span></label><select formControlName="destination" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option *ngFor="let region of destinationRegions" [value]="region">{{ region }}</option></select></div>
               </div>
 
               <label class="mb-3 mt-4 block text-sm font-medium text-gray-700">Select a Plan<span class="text-red-500">*</span></label>
+              <!--
+                THIS IS THE CORRECTED SECTION THAT DISPLAYS THE PLAN CARDS WITH BENEFITS
+              -->
               <div class="plan-selector">
-                <label *ngFor="let plan of travelPlans">
+                <label *ngFor="let plan of travelPlansWithBenefits">
                   <input type="radio" formControlName="plan" [value]="plan.id" />
                   <div class="plan-card">
                     <div class="plan-name">{{ plan.name }}</div>
                     <div class="plan-description">{{ plan.description }}</div>
+                    <ul class="plan-benefits">
+                      <li *ngFor="let benefit of plan.keyBenefits">
+                        <mat-icon>check_circle</mat-icon>
+                        <span>{{ benefit }}</span>
+                      </li>
+                    </ul>
                   </div>
                 </label>
               </div>
 
               <div class="mt-6 flex items-center">
                 <input type="checkbox" formControlName="winterSports" id="winterSports" class="h-4 w-4 rounded border-gray-300 text-fidelity-turquoise focus:ring-fidelity-turquoise"/>
-                <label for="winterSports" class="ml-2 text-sm text-gray-700">Add Winter Sports cover (Premium Surcharge applies)</label>
+                <label for="winterSports" class="ml-2 text-sm text-gray-700">Add Winter Sports cover (100% Surcharge)</label>
               </div>
             </form>
           </div>
 
-          <!-- Step 2: Traveler Details -->
+          <!-- Step 2: Traveler Details (No changes here) -->
           <div *ngIf="currentStep === 2" class="step-content rounded-lg bg-white p-6 shadow-sm">
             <h2 class="mb-2 text-2xl font-semibold text-gray-900">Traveler Details</h2>
             <p class="mb-6 text-gray-600">Please provide the primary traveler's information.</p>
             <form [formGroup]="travelerDetailsForm">
               <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Title<span class="text-red-500">*</span></label><select formControlName="title" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option>Mr</option><option>Mrs</option><option>Miss</option><option>Ms</option><option>Dr</option></select></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label><input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label><input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Beneficiary<span class="text-red-500">*</span></label><input type="text" formControlName="beneficiary" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Purpose of Trip<span class="text-red-500">*</span></label><input type="text" formControlName="purposeOfTrip" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Passport Number</label><input type="text" formControlName="passportNo" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN</label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
                 <div><label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+                <div><label class="mb-2 block text-sm font-medium text-gray-700">Home Doctor (Optional)</label><input type="text" formControlName="homeDoctor" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
               </div>
               <div class="mt-6 space-y-4">
-                  <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span></label>
-                  <label class="flex items-start"><input type="checkbox" formControlName="dataPrivacyConsent" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/privacy" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Data Privacy Policy</a>.*</span></label>
+                  <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions and Data Privacy Policy</a>.*</span></label>
               </div>
             </form>
           </div>
 
-          <!-- Step 3: Review & Pay -->
+          <!-- Step 3: Review & Pay (No changes here) -->
           <div *ngIf="currentStep === 3" class="step-content rounded-lg bg-white p-6 shadow-sm">
             <h2 class="mb-6 text-2xl font-semibold text-gray-900">Review Your Quote</h2>
             <div class="review-section">
               <h4>Trip Details</h4>
-              <div class="review-grid"><span class="label">Destination</span><span class="value">{{ quotationForm.value.destination }}</span><span class="label">Travel Dates</span><span class="value">{{ quotationForm.value.startDate | date:'mediumDate' }} - {{ quotationForm.value.endDate | date:'mediumDate' }} ({{ premium.durationDays }} days)</span><span class="label">Travelers</span><span class="value">{{ quotationForm.value.numTravelers }}</span><span class="label">Cover Plan</span><span class="value">{{ getPlanName(quotationForm.value.plan) }}</span></div>
+              <div class="review-grid"><span class="label">Plan</span><span class="value">{{ getPlanName(quotationForm.value.plan) }}</span><span class="label">Travel Dates</span><span class="value">{{ quotationForm.value.startDate | date:'mediumDate' }} to {{ quotationForm.value.endDate | date:'mediumDate' }} ({{ premium.durationDays }} days)</span><span class="label">Travelers</span><span class="value">{{ quotationForm.value.numTravelers }}</span></div>
               <h4>Traveler Information</h4>
               <div class="review-grid"><span class="label">Name</span><span class="value">{{ travelerDetailsForm.value.fullName }}</span><span class="label">Email</span><span class="value">{{ travelerDetailsForm.value.email }}</span><span class="label">Phone</span><span class="value">{{ travelerDetailsForm.value.phoneNumber }}</span></div>
-              <h4 class="mt-8">Plan Benefits</h4>
+              <h4 class="mt-8">Full Plan Benefits</h4>
               <table *ngIf="selectedPlanDetails" class="benefit-table">
                 <thead><tr><th>Benefit</th><th>Limit</th></tr></thead>
                 <tbody><tr *ngFor="let benefit of selectedPlanDetails.benefits"><td>{{ benefit.name }}</td><td>{{ benefit.limit }}</td></tr></tbody>
@@ -109,20 +120,22 @@
           </div>
         </div>
 
-        <!-- Right Column: Premium Summary -->
+        <!-- Right Column: Premium Summary (No changes here) -->
         <div class="lg:col-span-1">
           <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold text-gray-900">Premium Summary</h3>
             <div class="space-y-3 rounded-lg bg-fidelity-turquoise/10 p-4 text-sm">
-              <div class="flex justify-between font-semibold"><span>Base Rate (USD)</span><span>$ {{ premium.baseRate | number:'1.2-2' }}</span></div>
-              <div class="flex justify-between"><span>Number of Travelers</span><span>x {{ quotationForm.get('numTravelers')?.value || 1 }}</span></div>
+              <div class="flex justify-between font-semibold"><span>Base Rate (USD)</span><span>$ {{ premium.baseRateUSD | number:'1.2-2' }}</span></div>
               <div class="border-t my-2"></div>
-              <div class="flex justify-between font-semibold"><span>Subtotal (USD)</span><span>$ {{ premium.subtotal | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.groupDiscount > 0" class="flex justify-between text-green-600"><span>Group Discount</span><span>- $ {{ premium.groupDiscount | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.ageSurcharge > 0" class="flex justify-between text-red-500"><span>Age Surcharge</span><span>+ $ {{ premium.ageSurcharge | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.winterSportsSurcharge > 0" class="flex justify-between text-red-500"><span>Winter Sports</span><span>+ $ {{ premium.winterSportsSurcharge | number:'1.2-2' }}</span></div>
+              <div class="flex justify-between font-semibold"><span>Subtotal (USD)</span><span>$ {{ premium.subtotalUSD | number:'1.2-2' }}</span></div>
+              <div *ngIf="premium.groupDiscountUSD > 0" class="flex justify-between text-green-600"><span>Group Discount</span><span>- $ {{ premium.groupDiscountUSD | number:'1.2-2' }}</span></div>
+              <div *ngIf="premium.ageSurchargeUSD != 0" class="flex justify-between" [ngClass]="{'text-red-500': premium.ageSurchargeUSD > 0, 'text-green-600': premium.ageSurchargeUSD < 0}">
+                <span>Age Adjustment</span>
+                <span>{{ premium.ageSurchargeUSD > 0 ? '+' : '-' }} $ {{ abs(premium.ageSurchargeUSD) | number:'1.2-2' }}</span>
+              </div>
+              <div *ngIf="premium.winterSportsSurchargeUSD > 0" class="flex justify-between text-red-500"><span>Winter Sports Surcharge</span><span>+ $ {{ premium.winterSportsSurchargeUSD | number:'1.2-2' }}</span></div>
               <div class="border-t my-2"></div>
-              <div class="flex justify-between items-center text-xl font-bold text-fidelity-turquoise"><span>Total Payable</span><span>$ {{ premium.totalPayable | number:'1.2-2' }}</span></div>
+              <div class="flex justify-between items-center text-xl font-bold text-fidelity-turquoise"><span>Total Payable</span><span>KES {{ premium.totalPayableKES | number:'1.2-2' }}</span></div>
             </div>
             
             <div class="mt-6">
