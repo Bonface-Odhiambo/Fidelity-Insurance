@@ -67,7 +67,10 @@
                   <div class="plan-card">
                     <div class="plan-name">{{ plan.name }}</div>
                     <div class="plan-description">{{ plan.description }}</div>
-                    <ul class="plan-benefits-summary"><li *ngFor="let benefit of plan.keyBenefits"><mat-icon>check_circle</mat-icon><span>{{ benefit }}</span></li></ul>
+                    <!-- 
+                      FIX: The key benefits list that was here has been removed for a cleaner design.
+                      The hover pop-up below is now the only place to see benefits.
+                    -->
                     <div class="plan-benefits-popup"><div class="popup-content"><h4 class="popup-title">{{ plan.name }} Full Benefits</h4><ul class="popup-benefit-list"><li *ngFor="let benefit of plan.benefits"><span>{{ benefit.name }}</span><span class="limit">{{ benefit.limit }}</span></li></ul></div></div>
                   </div>
                 </label>
