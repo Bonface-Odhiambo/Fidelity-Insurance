@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from '../dashboard/dashboard.component';
+import { GolfersQuoteComponent } from '../golfers-quote/golfers-quote.component';
 import { MarineGuardProComponent } from '../marine-guard-pro/marine-guard-pro.component';
 import { TravelQuoteComponent } from '../travel-quote/travel-quote.component';
-import  { GolfersQuoteComponent } from '../golfers-quote/golfer-quote.component';
 // CORRECTED: Import the component from its actual file
 import { MarineCargoQuotationComponent } from '../user-registration/user-registration.component';
 
@@ -18,9 +18,8 @@ export default [
         component: FidelityAuthSignUpComponent,
     },
     {
-        path:'golfers-quote',
-        component:GolfersQuoteComponent
-
+        path: 'golfers-quote',
+        component: GolfersQuoteComponent,
     },
     {
         path: 'marine-quote',
