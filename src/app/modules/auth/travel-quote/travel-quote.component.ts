@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MpesaPaymentModalComponent, PaymentResult } from '../shared/payment-modal.component';
 
 // --- Data Structures ---
-interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; }
+interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; keyBenefits: string[]; }
 interface Benefit { name: string; limit: string; }
 interface Premium {
   baseRateUSD: number;
@@ -19,15 +19,11 @@ interface Premium {
   totalPayableKES: number;
   durationDays: number;
 }
-interface TravelPlanWithBenefits extends Omit<TravelPlan, 'benefits'> {
-  keyBenefits: string[];
-}
-
 
 @Component({
   selector: 'app-travel-quote',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule ],
+  imports: [ CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule, DatePipe ],
   templateUrl: './travel-quote.component.html',
   styleUrls: ['./travel-quote.component.scss'],
 })
@@ -37,7 +33,7 @@ export class TravelQuoteComponent implements OnInit {
   travelerDetailsForm: FormGroup;
   premium: Premium = this.resetPremium();
   selectedPlanDetails: TravelPlan | null = null;
-  travelPlansWithBenefits: TravelPlanWithBenefits[] = [];
+  travelPlans: TravelPlan[] = [];
 
   private readonly USD_TO_KES_RATE = 130.00;
 
@@ -55,50 +51,44 @@ export class TravelQuoteComponent implements OnInit {
   };
 
   private allPlanBenefits: { [key: string]: Benefit[] } = {
-    'AFRICA': [ { name: 'Medical Expenses & Hospitalization', limit: '$15,000' }, { name: 'Emergency medical evacuation', limit: '$15,000' }, { name: 'Repatriation of mortal remains', limit: '$10,000' }, { name: 'In-flight checked-in baggage', limit: '$1,500' }],
-    'ASIA': [ { name: 'Medical Expenses & Hospitalization', limit: '$15,000' }, { name: 'Emergency medical evacuation', limit: '$15,000' }, { name: 'Repatriation of mortal remains', limit: '$10,000' }, { name: 'In-flight checked-in baggage', limit: '$1,500' }],
-    'EUROPE': [ { name: 'Medical Expenses & Hospitalization', limit: '€36,000' }, { name: 'Emergency medical evacuation', limit: '€36,000' }, { name: 'Repatriation of mortal remains', limit: '€10,000' }, { name: 'Accidental Death (Public Transport)', limit: '€10,000' }],
-    'BASIC': [ { name: 'Medical Expenses & Hospitalization', limit: '$40,000' }, { name: 'Emergency medical evacuation', limit: '$40,000' }, { name: 'Personal Civil Liability', limit: '$100,000' }, { name: 'Journey Cancellation', limit: '$2,000' }],
-    'PLUS': [ { name: 'Medical Expenses & Hospitalization', limit: '$75,000' }, { name: 'Emergency medical evacuation', limit: '$75,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Journey Cancellation', limit: '$3,000' }],
-    'EXTRA': [ { name: 'Medical Expenses & Hospitalization', limit: '$150,000' }, { name: 'Emergency medical evacuation', limit: '$150,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Accidental Death (Public Transport)', limit: '$50,000' }]
+    'AFRICA': [ { name: 'Medical Expenses', limit: '$15,000' }, { name: 'Emergency Evacuation', limit: '$15,000' }, { name: 'Mortal Remains Repatriation', limit: '$10,000' }, { name: 'Checked-in Baggage Loss', limit: '$1,500' }, { name: 'Luggage Delay', limit: '$250' } ],
+    'EUROPE': [ { name: 'Medical Expenses', limit: '€36,000' }, { name: 'Emergency Evacuation', limit: '€36,000' }, { name: 'Mortal Remains Repatriation', limit: '€10,000' }, { name: 'Accidental Death (Public Transport)', limit: '€10,000' }, { name: 'Delayed Departure', limit: '300€' } ],
+    'BASIC': [ { name: 'Medical Expenses', limit: '$40,000' }, { name: 'Emergency Evacuation', limit: '$40,000' }, { name: 'Personal Civil Liability', limit: '$100,000' }, { name: 'Journey Cancellation', limit: '$2,000' }, { name: 'Missed Travel Connection', limit: '$300' } ],
+    'PLUS': [ { name: 'Medical Expenses', limit: '$75,000' }, { name: 'Emergency Evacuation', limit: '$75,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Journey Cancellation', limit: '$3,000' }, { name: 'Missed Travel Connection', limit: '$500' } ],
+    'EXTRA': [ { name: 'Medical Expenses', limit: '$150,000' }, { name: 'Emergency Evacuation', limit: '$150,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Accidental Death (Public Transport)', limit: '$50,000' }, { name: 'Journey Cancellation', limit: '$3,000' } ]
   };
   
   constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog) {
+    this.travelerDetailsForm = this.fb.group({
+      title: ['Mr', Validators.required],
+      fullName: ['', Validators.required],
+      dob: ['', { validators: [Validators.required, this.noFutureDatesValidator], updateOn: 'blur' }],
+      beneficiary: ['', Validators.required],
+      purposeOfTrip: ['', Validators.required],
+      passportNo: [''],
+      kraPin: ['', [Validators.pattern(/^[A-Z]\d{9}[A-Z]$/i)]],
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^0[17]\d{8}$/)]],
+      homeDoctor: [''],
+    });
+
     this.quotationForm = this.fb.group({
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       numTravelers: [1, [Validators.required, Validators.min(1)]],
       plan: ['AFRICA', Validators.required],
-      winterSports: [false]
-    }, { validators: this.dateRangeValidator });
-
-    //
-    // FIX IS HERE: Updated the travelerDetailsForm definition
-    //
-    this.travelerDetailsForm = this.fb.group({
-      title: ['Mr', Validators.required],
-      fullName: ['', Validators.required],
-      // 1. Add custom validator and set updateOn blur
-      dob: ['', { validators: [Validators.required, this.noFutureDatesValidator], updateOn: 'blur' }],
-      beneficiary: ['', Validators.required],
-      purposeOfTrip: ['', Validators.required],
-      passportNo: [''],
-      kraPin: [''],
-      email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.required, Validators.pattern('^07[0-9]{8}$')]],
-      homeDoctor: [''],
+      winterSports: [false],
       termsAndConditions: [false, Validators.requiredTrue],
-    });
+    }, { validators: this.dateRangeValidator });
   }
 
   ngOnInit(): void {
-    this.travelPlansWithBenefits = [
-      { id: 'AFRICA', name: 'Africa', description: 'Value cover for travel', keyBenefits: ['Medical up to $15,000', 'Evacuation up to $15,000', 'Baggage up to $1,500'] },
-      { id: 'ASIA', name: 'Asia', description: 'Value cover for travel', keyBenefits: ['Medical up to $15,000', 'Evacuation up to $15,000', 'Baggage up to $1,500'] },
-      { id: 'EUROPE', name: 'Europe Basic', description: 'Limits for transfers to Europe', keyBenefits: ['Medical up to €36,000', 'Evacuation up to €36,000', 'Accidental Death up to €10,000'] },
-      { id: 'BASIC', name: 'Worldwide Basic', description: 'Basic worldwide cover', keyBenefits: ['Medical up to $40,000', 'Liability up to $100,000', 'Cancellation up to $2,000'] },
-      { id: 'PLUS', name: 'Worldwide Plus', description: 'Comprehensive insurance', keyBenefits: ['Medical up to $75,000', 'Liability up to $150,000', 'Cancellation up to $3,000'] },
-      { id: 'EXTRA', name: 'Worldwide Extra', description: 'Extra protection', keyBenefits: ['Medical up to $150,000', 'Liability up to $150,000', 'Accidental Death up to $50,000'] },
+    this.travelPlans = [
+      { id: 'AFRICA', name: 'Africa/Asia', description: 'Value cover for regional travel', keyBenefits: ['Medical up to $15,000', 'Evacuation up to $15,000', 'Baggage up to $1,500'], benefits: this.allPlanBenefits['AFRICA'] },
+      { id: 'EUROPE', name: 'Europe Basic', description: 'Essential cover for Europe & Schengen', keyBenefits: ['Medical up to €36,000', 'Evacuation up to €36,000', 'Accidental Death up to €10,000'], benefits: this.allPlanBenefits['EUROPE'] },
+      { id: 'BASIC', name: 'Worldwide Basic', description: 'Basic worldwide cover for essential needs', keyBenefits: ['Medical up to $40,000', 'Liability up to $100,000', 'Cancellation up to $2,000'], benefits: this.allPlanBenefits['BASIC'] },
+      { id: 'PLUS', name: 'Worldwide Plus', description: 'Comprehensive worldwide insurance', keyBenefits: ['Medical up to $75,000', 'Liability up to $150,000', 'Cancellation up to $3,000'], benefits: this.allPlanBenefits['PLUS'] },
+      { id: 'EXTRA', name: 'Worldwide Extra', description: 'Maximum protection for global travel', keyBenefits: ['Medical up to $150,000', 'Liability up to $150,000', 'Accidental Death up to $50,000'], benefits: this.allPlanBenefits['EXTRA'] }
     ];
 
     const recalculate = () => { if (this.quotationForm.valid) this.calculatePremium(); };
@@ -117,7 +107,6 @@ export class TravelQuoteComponent implements OnInit {
     
     const ratePlanId = values.plan;
     const baseRateUSD = this.rates[durationTier][ratePlanId] || 0;
-    
     let subtotalUSD = baseRateUSD * values.numTravelers;
 
     let groupDiscountUSD = 0;
@@ -145,17 +134,40 @@ export class TravelQuoteComponent implements OnInit {
     this.selectedPlanDetails = this.getFullPlanDetails(values.plan);
   }
 
-  nextStep(): void { if (!this.isCurrentStepInvalid()) this.currentStep++; }
+  nextStep(): void {
+    if (!this.isCurrentStepInvalid()) {
+      if (this.currentStep === 2) {
+        this.saveQuoteToLocalStorage();
+      }
+      this.currentStep++;
+    }
+  }
+
   prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
 
   isCurrentStepInvalid(): boolean {
-    if (this.currentStep === 1) return this.quotationForm.invalid;
-    if (this.currentStep === 2) return this.travelerDetailsForm.invalid;
+    if (this.currentStep === 1) return this.travelerDetailsForm.invalid;
+    if (this.currentStep === 2) return this.quotationForm.invalid;
+    if (this.currentStep === 3) return this.travelerDetailsForm.invalid || this.quotationForm.invalid;
     return false;
   }
   
+  private saveQuoteToLocalStorage(): void {
+    if (this.travelerDetailsForm.invalid || this.quotationForm.invalid) return;
+    const combinedQuote = {
+      id: `FID-TRV-${Date.now()}`,
+      travelerDetails: this.travelerDetailsForm.value,
+      quoteDetails: this.quotationForm.value,
+      premium: this.premium,
+      status: 'pending'
+    };
+    const existingQuotes = JSON.parse(localStorage.getItem('pendingTravelQuotes') || '[]');
+    existingQuotes.push(combinedQuote);
+    localStorage.setItem('pendingTravelQuotes', JSON.stringify(existingQuotes));
+  }
+  
   handlePayment(): void {
-    if (this.travelerDetailsForm.invalid) { this.travelerDetailsForm.markAllAsTouched(); return; }
+    if (this.isCurrentStepInvalid()) return;
     const dialogRef = this.dialog.open(MpesaPaymentModalComponent, {
       data: {
         amount: this.premium.totalPayableKES,
@@ -176,17 +188,15 @@ export class TravelQuoteComponent implements OnInit {
   getToday(): string { return new Date().toISOString().split('T')[0]; }
   dateRangeValidator(group: AbstractControl): { [key: string]: boolean } | null { const start = group.get('startDate')?.value; const end = group.get('endDate')?.value; return start && end && start > end ? { invalidDateRange: true } : null; }
   
-  // 2. Added new validator function for Date of Birth
   noFutureDatesValidator(control: AbstractControl): { [key: string]: boolean } | null {
     if (!control.value) return null;
     const selectedDate = new Date(control.value);
     const today = new Date();
-    // Set hours to 0 to compare dates only
     today.setHours(0, 0, 0, 0);
     return selectedDate > today ? { futureDate: true } : null;
   }
 
-  getPlanName(planId: string): string { return this.travelPlansWithBenefits.find(p => p.id === planId)?.name || 'Unknown Plan'; }
+  getPlanName(planId: string): string { return this.travelPlans.find(p => p.id === planId)?.name || 'Unknown Plan'; }
   closeForm(): void { this.router.navigate(['/dashboard']); }
   
   private resetPremium(): Premium {
@@ -194,7 +204,7 @@ export class TravelQuoteComponent implements OnInit {
   }
   
   private getFullPlanDetails(planId: string): TravelPlan | null {
-    const planInfo = this.travelPlansWithBenefits.find(p => p.id === planId);
+    const planInfo = this.travelPlans.find(p => p.id === planId);
     return planInfo ? { ...planInfo, benefits: this.allPlanBenefits[planId] || [] } : null;
   }
 
