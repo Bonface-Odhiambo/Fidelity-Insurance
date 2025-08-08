@@ -1,126 +1,785 @@
 <div class="min-h-screen w-screen bg-gray-50">
-  <!-- Header -->
-  <header class="sticky top-0 z-10 bg-white shadow-sm">
-    <div class="mx-auto max-w-7xl px-6">
-      <div class="flex items-center justify-between py-3">
-        <div class="flex items-center gap-4">
-          <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Logo" class="h-10 w-auto rounded-lg" />
-          <h1 class="text-xl font-semibold text-slate-800">Fidelity Travel Insurance</h1>
+    <!-- Header -->
+    <header class="sticky top-0 z-10 bg-white shadow-sm">
+        <div class="mx-auto max-w-7xl px-6">
+            <div class="flex items-center justify-between py-3">
+                <div class="flex items-center gap-4">
+                    <img
+                        src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY"
+                        alt="Fidelity Logo"
+                        class="h-10 w-auto rounded-lg"
+                    />
+                    <h1 class="text-xl font-semibold text-slate-800">
+                        Fidelity Travel Insurance
+                    </h1>
+                </div>
+                <button
+                    (click)="closeForm()"
+                    class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    title="Close"
+                >
+                    <mat-icon class="!h-4 !w-4 !text-base">close</mat-icon>Close
+                </button>
+            </div>
         </div>
-        <button (click)="closeForm()" class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50" title="Close"><mat-icon class="!h-4 !w-4 !text-base">close</mat-icon>Close</button>
-      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="p-6">
+        <div class="mx-auto max-w-7xl">
+            <!-- Progress Steps -->
+            <div class="mb-8">
+                <div class="flex items-center">
+                    <div
+                        class="flex items-center"
+                        [class.text-fidelity-turquoise]="currentStep >= 1"
+                        [class.text-gray-500]="currentStep < 1"
+                    >
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium"
+                            [class.bg-fidelity-turquoise]="currentStep >= 1"
+                            [class.text-white]="currentStep >= 1"
+                            [class.bg-gray-300]="currentStep < 1"
+                        >
+                            1
+                        </div>
+                        <span class="ml-2 text-sm font-medium">Details</span>
+                    </div>
+                    <div
+                        class="mx-4 h-px flex-1"
+                        [class.bg-fidelity-turquoise]="currentStep > 1"
+                        [class.bg-gray-300]="currentStep <= 1"
+                    ></div>
+                    <div
+                        class="flex items-center"
+                        [class.text-fidelity-turquoise]="currentStep >= 2"
+                        [class.text-gray-500]="currentStep < 2"
+                    >
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium"
+                            [class.bg-fidelity-turquoise]="currentStep >= 2"
+                            [class.text-white]="currentStep >= 2"
+                            [class.bg-gray-300]="currentStep < 2"
+                        >
+                            2
+                        </div>
+                        <span class="ml-2 text-sm font-medium">Quote</span>
+                    </div>
+                    <div
+                        class="mx-4 h-px flex-1"
+                        [class.bg-fidelity-turquoise]="currentStep > 2"
+                        [class.bg-gray-300]="currentStep <= 2"
+                    ></div>
+                    <div
+                        class="flex items-center"
+                        [class.text-fidelity-turquoise]="currentStep >= 3"
+                        [class.text-gray-500]="currentStep < 3"
+                    >
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium"
+                            [class.bg-fidelity-turquoise]="currentStep >= 3"
+                            [class.text-white]="currentStep >= 3"
+                            [class.bg-gray-300]="currentStep < 3"
+                        >
+                            3
+                        </div>
+                        <span class="ml-2 text-sm font-medium"
+                            >Review & Pay</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <!-- Left Column: Forms -->
+                <div class="lg:col-span-2">
+                    <!-- Step 1: Traveler Details -->
+                    <div
+                        *ngIf="currentStep === 1"
+                        class="step-content rounded-lg bg-white p-6 shadow-sm"
+                    >
+                        <h2 class="mb-2 text-2xl font-semibold text-gray-900">
+                            Traveler Details
+                        </h2>
+                        <p class="mb-6 text-gray-600">
+                            Please provide the primary traveler's information.
+                        </p>
+                        <form [formGroup]="travelerDetailsForm">
+                            <div
+                                class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Title<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><select
+                                        formControlName="title"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    >
+                                        <option>Mr</option>
+                                        <option>Mrs</option>
+                                        <option>Miss</option>
+                                        <option>Ms</option>
+                                        <option>Dr</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Full Name<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="text"
+                                        formControlName="fullName"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.fullName.invalid &&
+                                            (f.fullName.dirty ||
+                                                f.fullName.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                f.fullName.errors?.['required']
+                                            "
+                                            >Full name is required.</span
+                                        ><span
+                                            *ngIf="
+                                                f.fullName.errors?.['minlength']
+                                            "
+                                            >Must be at least 3
+                                            characters.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Date of Birth<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="date"
+                                        formControlName="dob"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.dob.invalid &&
+                                            (f.dob.dirty || f.dob.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span *ngIf="f.dob.errors?.['required']"
+                                            >Date of birth is required.</span
+                                        ><span
+                                            *ngIf="f.dob.errors?.['futureDate']"
+                                            >Date cannot be in the future.</span
+                                        ><span *ngIf="f.dob.errors?.['minAge']"
+                                            >Traveler must be at least 18 years
+                                            old.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Beneficiary<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="text"
+                                        formControlName="beneficiary"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.beneficiary.invalid &&
+                                            (f.beneficiary.dirty ||
+                                                f.beneficiary.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                f.beneficiary.errors?.[
+                                                    'required'
+                                                ]
+                                            "
+                                            >Beneficiary name is required.</span
+                                        ><span
+                                            *ngIf="
+                                                f.beneficiary.errors?.[
+                                                    'minlength'
+                                                ]
+                                            "
+                                            >Must be at least 3
+                                            characters.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Purpose of Trip<span
+                                            class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="text"
+                                        formControlName="purposeOfTrip"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.purposeOfTrip.invalid &&
+                                            (f.purposeOfTrip.dirty ||
+                                                f.purposeOfTrip.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        Purpose of trip is required.
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Passport Number</label
+                                    >
+                                    <input
+                                        type="text"
+                                        formControlName="passportNo"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                        placeholder="e.g., A12345678"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.passportNo.invalid &&
+                                            (f.passportNo.dirty ||
+                                                f.passportNo.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                f.passportNo.errors?.['pattern']
+                                            "
+                                            >Invalid format. Should be 6-9
+                                            letters/numbers.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >KRA PIN</label
+                                    ><input
+                                        type="text"
+                                        formControlName="kraPin"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                        placeholder="e.g. A123456789Z"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.kraPin.invalid &&
+                                            (f.kraPin.dirty || f.kraPin.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        Invalid KRA PIN format (e.g.
+                                        A123456789Z).
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Email Address<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="email"
+                                        formControlName="email"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.email.invalid &&
+                                            (f.email.dirty || f.email.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="f.email.errors?.['required']"
+                                            >Email is required.</span
+                                        ><span *ngIf="f.email.errors?.['email']"
+                                            >Please enter a valid email
+                                            address.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Phone Number<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="tel"
+                                        formControlName="phoneNumber"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                        placeholder="e.g. 0712345678"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            f.phoneNumber.invalid &&
+                                            (f.phoneNumber.dirty ||
+                                                f.phoneNumber.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                f.phoneNumber.errors?.[
+                                                    'required'
+                                                ]
+                                            "
+                                            >Phone number is required.</span
+                                        ><span
+                                            *ngIf="
+                                                f.phoneNumber.errors?.[
+                                                    'pattern'
+                                                ]
+                                            "
+                                            >Invalid format (e.g.
+                                            0712345678).</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Home Doctor (Optional)</label
+                                    ><input
+                                        type="text"
+                                        formControlName="homeDoctor"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step 2: Quote Form -->
+                    <div
+                        *ngIf="currentStep === 2"
+                        class="step-content rounded-lg bg-white p-6 shadow-sm"
+                    >
+                        <form [formGroup]="quotationForm">
+                            <h2
+                                class="mb-2 text-2xl font-semibold text-gray-900"
+                            >
+                                Get Your Travel Insurance Quote
+                            </h2>
+                            <p class="mb-6 text-gray-600">
+                                Tell us about your trip to see available plans
+                                and pricing.
+                            </p>
+                            <div
+                                class="mb-6 grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Start Date<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="date"
+                                        formControlName="startDate"
+                                        [min]="getToday()"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            qf.startDate.invalid &&
+                                            (qf.startDate.dirty ||
+                                                qf.startDate.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        Start date is required.
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >End Date<span class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="date"
+                                        formControlName="endDate"
+                                        [min]="
+                                            quotationForm.get('startDate')
+                                                ?.value || getToday()
+                                        "
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            (qf.endDate.invalid &&
+                                                (qf.endDate.dirty ||
+                                                    qf.endDate.touched)) ||
+                                            quotationForm.hasError(
+                                                'invalidDateRange'
+                                            )
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                qf.endDate.errors?.['required']
+                                            "
+                                            >End date is required.</span
+                                        ><span
+                                            *ngIf="
+                                                quotationForm.hasError(
+                                                    'invalidDateRange'
+                                                )
+                                            "
+                                            >End date must be on or after start
+                                            date.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-gray-700"
+                                        >Number of Travelers<span
+                                            class="text-red-500"
+                                            >*</span
+                                        ></label
+                                    ><input
+                                        type="number"
+                                        formControlName="numTravelers"
+                                        min="1"
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+                                    />
+                                    <div
+                                        *ngIf="
+                                            qf.numTravelers.invalid &&
+                                            (qf.numTravelers.dirty ||
+                                                qf.numTravelers.touched)
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        <span
+                                            *ngIf="
+                                                qf.numTravelers.errors?.[
+                                                    'required'
+                                                ]
+                                            "
+                                            >Number of travelers is
+                                            required.</span
+                                        ><span
+                                            *ngIf="
+                                                qf.numTravelers.errors?.['min']
+                                            "
+                                            >Must be at least 1 traveler.</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                            <label
+                                class="mb-3 mt-4 block text-sm font-medium text-gray-700"
+                                >Select a Plan<span class="text-red-500"
+                                    >*</span
+                                ></label
+                            >
+                            <div class="plan-selector">
+                                <label *ngFor="let plan of travelPlans">
+                                    <input
+                                        type="radio"
+                                        formControlName="plan"
+                                        [value]="plan.id"
+                                    />
+                                    <div class="plan-card">
+                                        <div class="plan-name">
+                                            {{ plan.name }}
+                                        </div>
+                                        <div class="plan-description">
+                                            {{ plan.description }}
+                                        </div>
+                                        <div class="plan-benefits-popup">
+                                            <div class="popup-content">
+                                                <h4 class="popup-title">
+                                                    {{ plan.name }} Full
+                                                    Benefits
+                                                </h4>
+                                                <ul class="popup-benefit-list">
+                                                    <li
+                                                        *ngFor="
+                                                            let benefit of plan.benefits
+                                                        "
+                                                    >
+                                                        <span>{{
+                                                            benefit.name
+                                                        }}</span
+                                                        ><span class="limit">{{
+                                                            benefit.limit
+                                                        }}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="mt-6 flex items-center">
+                                <input
+                                    type="checkbox"
+                                    formControlName="winterSports"
+                                    id="winterSports"
+                                    class="text-fidelity-turquoise focus:ring-fidelity-turquoise h-4 w-4 rounded border-gray-300"
+                                /><label
+                                    for="winterSports"
+                                    class="ml-2 text-sm text-gray-700"
+                                    >Add Winter Sports cover (100%
+                                    Surcharge)</label
+                                >
+                            </div>
+                            <div class="mt-6 space-y-4">
+                                <label class="flex items-start"
+                                    ><input
+                                        type="checkbox"
+                                        formControlName="termsAndConditions"
+                                        class="text-fidelity-turquoise focus:ring-fidelity-turquoise mt-1 h-4 w-4"
+                                    /><span class="ml-3 text-sm"
+                                        >I agree to the
+                                        <a
+                                            href="/terms"
+                                            target="_blank"
+                                            class="text-fidelity-turquoise font-medium hover:underline"
+                                            >Terms & Conditions and Data Privacy
+                                            Policy</a
+                                        >.*</span
+                                    ></label
+                                >
+                                <div
+                                    *ngIf="
+                                        qf.termsAndConditions.invalid &&
+                                        (qf.termsAndConditions.dirty ||
+                                            qf.termsAndConditions.touched)
+                                    "
+                                    class="ml-7 text-xs text-red-500"
+                                >
+                                    You must accept the terms to continue.
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step 3: Review & Pay -->
+                    <div
+                        *ngIf="currentStep === 3"
+                        class="step-content rounded-lg bg-white p-6 shadow-sm"
+                    >
+                        <h2 class="mb-6 text-2xl font-semibold text-gray-900">
+                            Review Your Quote
+                        </h2>
+                        <div class="review-section">
+                            <h4>Trip Details</h4>
+                            <div class="review-grid">
+                                <span class="label">Plan</span
+                                ><span class="value">{{
+                                    getPlanName(quotationForm.value.plan)
+                                }}</span
+                                ><span class="label">Travel Dates</span
+                                ><span class="value"
+                                    >{{
+                                        quotationForm.value.startDate
+                                            | date: 'mediumDate'
+                                    }}
+                                    to
+                                    {{
+                                        quotationForm.value.endDate
+                                            | date: 'mediumDate'
+                                    }}
+                                    ({{ premium.durationDays }} days)</span
+                                ><span class="label">Travelers</span
+                                ><span class="value">{{
+                                    quotationForm.value.numTravelers
+                                }}</span>
+                            </div>
+                            <h4>Traveler Information</h4>
+                            <div class="review-grid">
+                                <span class="label">Name</span
+                                ><span class="value">{{
+                                    travelerDetailsForm.value.fullName
+                                }}</span
+                                ><span class="label">Email</span
+                                ><span class="value">{{
+                                    travelerDetailsForm.value.email
+                                }}</span
+                                ><span class="label">Phone</span
+                                ><span class="value">{{
+                                    travelerDetailsForm.value.phoneNumber
+                                }}</span>
+                            </div>
+                            <h4 class="mt-8">Full Plan Benefits</h4>
+                            <table
+                                *ngIf="selectedPlanDetails"
+                                class="benefit-table"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Benefit</th>
+                                        <th>Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        *ngFor="
+                                            let benefit of selectedPlanDetails.benefits
+                                        "
+                                    >
+                                        <td>{{ benefit.name }}</td>
+                                        <td>{{ benefit.limit }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Premium Summary & Navigation -->
+                <div class="lg:col-span-1">
+                    <div
+                        class="sticky top-24 rounded-lg bg-white p-6 shadow-sm"
+                    >
+                        <h3 class="mb-4 text-lg font-semibold text-gray-900">
+                            Premium Summary
+                        </h3>
+                        <div
+                            class="bg-fidelity-turquoise/10 space-y-3 rounded-lg p-4 text-sm"
+                        >
+                            <div class="flex justify-between font-semibold">
+                                <span>Base Rate (USD)</span
+                                ><span
+                                    >$
+                                    {{
+                                        premium.baseRateUSD | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                            <div class="my-2 border-t"></div>
+                            <div class="flex justify-between font-semibold">
+                                <span>Subtotal (USD)</span
+                                ><span
+                                    >$
+                                    {{
+                                        premium.subtotalUSD | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                            <div
+                                *ngIf="premium.groupDiscountUSD > 0"
+                                class="flex justify-between text-green-600"
+                            >
+                                <span>Group Discount</span
+                                ><span
+                                    >- $
+                                    {{
+                                        premium.groupDiscountUSD
+                                            | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                            <div
+                                *ngIf="premium.ageSurchargeUSD != 0"
+                                class="flex justify-between"
+                                [ngClass]="{
+                                    'text-red-500': premium.ageSurchargeUSD > 0,
+                                    'text-green-600':
+                                        premium.ageSurchargeUSD < 0,
+                                }"
+                            >
+                                <span>Age Adjustment</span
+                                ><span
+                                    >{{
+                                        premium.ageSurchargeUSD > 0 ? '+' : '-'
+                                    }}
+                                    $
+                                    {{
+                                        abs(premium.ageSurchargeUSD)
+                                            | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                            <div
+                                *ngIf="premium.winterSportsSurchargeUSD > 0"
+                                class="flex justify-between text-red-500"
+                            >
+                                <span>Winter Sports Surcharge</span
+                                ><span
+                                    >+ $
+                                    {{
+                                        premium.winterSportsSurchargeUSD
+                                            | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                            <div class="my-2 border-t"></div>
+                            <div
+                                class="text-fidelity-turquoise flex items-center justify-between text-xl font-bold"
+                            >
+                                <span>Total Payable</span
+                                ><span
+                                    >KES
+                                    {{
+                                        premium.totalPayableKES
+                                            | number: '1.2-2'
+                                    }}</span
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button
+                                *ngIf="currentStep < 3"
+                                (click)="nextStep()"
+                                [disabled]="isCurrentStepInvalid()"
+                                class="btn-primary w-full rounded-md px-4 py-3 font-medium"
+                            >
+                                Next
+                            </button>
+                            <div class="mt-4 flex flex-col gap-4">
+                                <button
+                                    *ngIf="currentStep === 3"
+                                    (click)="handlePayment()"
+                                    [disabled]="isCurrentStepInvalid()"
+                                    class="btn-primary rounded-md px-6 py-2 font-medium"
+                                >
+                                    Proceed to Payment
+                                </button>
+                                <button
+                                    *ngIf="currentStep > 1"
+                                    (click)="prevStep()"
+                                    class="hover:text-fidelity-turquoise w-full text-center text-sm font-medium text-gray-600"
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </header>
-
-  <!-- Main Content -->
-  <div class="p-6">
-    <div class="mx-auto max-w-7xl">
-      <!-- Progress Steps -->
-      <div class="mb-8">
-        <div class="flex items-center">
-          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 1" [class.text-gray-500]="currentStep < 1"><div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 1" [class.text-white]="currentStep >= 1" [class.bg-gray-300]="currentStep < 1">1</div><span class="ml-2 text-sm font-medium">Details</span></div>
-          <div class="mx-4 h-px flex-1" [class.bg-fidelity-turquoise]="currentStep > 1" [class.bg-gray-300]="currentStep <= 1"></div>
-          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 2" [class.text-gray-500]="currentStep < 2"><div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 2" [class.text-white]="currentStep >= 2" [class.bg-gray-300]="currentStep < 2">2</div><span class="ml-2 text-sm font-medium">Quote</span></div>
-          <div class="mx-4 h-px flex-1" [class.bg-fidelity-turquoise]="currentStep > 2" [class.bg-gray-300]="currentStep <= 2"></div>
-          <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 3" [class.text-gray-500]="currentStep < 3"><div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 3" [class.text-white]="currentStep >= 3" [class.bg-gray-300]="currentStep < 3">3</div><span class="ml-2 text-sm font-medium">Review & Pay</span></div>
-        </div>
-      </div>
-
-      <!-- Content Container -->
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <!-- Left Column: Forms -->
-        <div class="lg:col-span-2">
-          <!-- Step 1: Traveler Details -->
-          <div *ngIf="currentStep === 1" class="step-content rounded-lg bg-white p-6 shadow-sm">
-            <h2 class="mb-2 text-2xl font-semibold text-gray-900">Traveler Details</h2>
-            <p class="mb-6 text-gray-600">Please provide the primary traveler's information.</p>
-            <form [formGroup]="travelerDetailsForm">
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Title<span class="text-red-500">*</span></label><select formControlName="title" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"><option>Mr</option><option>Mrs</option><option>Miss</option><option>Ms</option><option>Dr</option></select></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label><input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label><input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Beneficiary<span class="text-red-500">*</span></label><input type="text" formControlName="beneficiary" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Purpose of Trip<span class="text-red-500">*</span></label><input type="text" formControlName="purposeOfTrip" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Passport Number</label><input type="text" formControlName="passportNo" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN</label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Home Doctor (Optional)</label><input type="text" formControlName="homeDoctor" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-              </div>
-            </form>
-          </div>
-
-          <!-- Step 2: Quote Form -->
-          <div *ngIf="currentStep === 2" class="step-content rounded-lg bg-white p-6 shadow-sm">
-            <form [formGroup]="quotationForm">
-              <h2 class="mb-2 text-2xl font-semibold text-gray-900">Get Your Travel Insurance Quote</h2>
-              <p class="mb-6 text-gray-600">Tell us about your trip to see available plans and pricing.</p>
-              <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Start Date<span class="text-red-500">*</span></label><input type="date" formControlName="startDate" [min]="getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">End Date<span class="text-red-500">*</span></label><input type="date" formControlName="endDate" [min]="quotationForm.get('startDate')?.value || getToday()" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Number of Travelers<span class="text-red-500">*</span></label><input type="number" formControlName="numTravelers" min="1" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-              </div>
-              <label class="mb-3 mt-4 block text-sm font-medium text-gray-700">Select a Plan<span class="text-red-500">*</span></label>
-              <div class="plan-selector">
-                <label *ngFor="let plan of travelPlans">
-                  <input type="radio" formControlName="plan" [value]="plan.id" />
-                  <div class="plan-card">
-                    <div class="plan-name">{{ plan.name }}</div>
-                    <div class="plan-description">{{ plan.description }}</div>
-                    <!-- 
-                      FIX: The key benefits list that was here has been removed for a cleaner design.
-                      The hover pop-up below is now the only place to see benefits.
-                    -->
-                    <div class="plan-benefits-popup"><div class="popup-content"><h4 class="popup-title">{{ plan.name }} Full Benefits</h4><ul class="popup-benefit-list"><li *ngFor="let benefit of plan.benefits"><span>{{ benefit.name }}</span><span class="limit">{{ benefit.limit }}</span></li></ul></div></div>
-                  </div>
-                </label>
-              </div>
-              <div class="mt-6 flex items-center"><input type="checkbox" formControlName="winterSports" id="winterSports" class="h-4 w-4 rounded border-gray-300 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><label for="winterSports" class="ml-2 text-sm text-gray-700">Add Winter Sports cover (100% Surcharge)</label></div>
-              <div class="mt-6 space-y-4"><label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions and Data Privacy Policy</a>.*</span></label></div>
-            </form>
-          </div>
-
-          <!-- Step 3: Review & Pay -->
-          <div *ngIf="currentStep === 3" class="step-content rounded-lg bg-white p-6 shadow-sm">
-            <h2 class="mb-6 text-2xl font-semibold text-gray-900">Review Your Quote</h2>
-            <div class="review-section">
-              <h4>Trip Details</h4>
-              <div class="review-grid"><span class="label">Plan</span><span class="value">{{ getPlanName(quotationForm.value.plan) }}</span><span class="label">Travel Dates</span><span class="value">{{ quotationForm.value.startDate | date:'mediumDate' }} to {{ quotationForm.value.endDate | date:'mediumDate' }} ({{ premium.durationDays }} days)</span><span class="label">Travelers</span><span class="value">{{ quotationForm.value.numTravelers }}</span></div>
-              <h4>Traveler Information</h4>
-              <div class="review-grid"><span class="label">Name</span><span class="value">{{ travelerDetailsForm.value.fullName }}</span><span class="label">Email</span><span class="value">{{ travelerDetailsForm.value.email }}</span><span class="label">Phone</span><span class="value">{{ travelerDetailsForm.value.phoneNumber }}</span></div>
-              <h4 class="mt-8">Full Plan Benefits</h4>
-              <table *ngIf="selectedPlanDetails" class="benefit-table">
-                <thead><tr><th>Benefit</th><th>Limit</th></tr></thead>
-                <tbody><tr *ngFor="let benefit of selectedPlanDetails.benefits"><td>{{ benefit.name }}</td><td>{{ benefit.limit }}</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Column: Premium Summary & Navigation -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
-            <h3 class="mb-4 text-lg font-semibold text-gray-900">Premium Summary</h3>
-            <div class="space-y-3 rounded-lg bg-fidelity-turquoise/10 p-4 text-sm">
-              <div class="flex justify-between font-semibold"><span>Base Rate (USD)</span><span>$ {{ premium.baseRateUSD | number:'1.2-2' }}</span></div>
-              <div class="border-t my-2"></div>
-              <div class="flex justify-between font-semibold"><span>Subtotal (USD)</span><span>$ {{ premium.subtotalUSD | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.groupDiscountUSD > 0" class="flex justify-between text-green-600"><span>Group Discount</span><span>- $ {{ premium.groupDiscountUSD | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.ageSurchargeUSD != 0" class="flex justify-between" [ngClass]="{'text-red-500': premium.ageSurchargeUSD > 0, 'text-green-600': premium.ageSurchargeUSD < 0}"><span>Age Adjustment</span><span>{{ premium.ageSurchargeUSD > 0 ? '+' : '-' }} $ {{ abs(premium.ageSurchargeUSD) | number:'1.2-2' }}</span></div>
-              <div *ngIf="premium.winterSportsSurchargeUSD > 0" class="flex justify-between text-red-500"><span>Winter Sports Surcharge</span><span>+ $ {{ premium.winterSportsSurchargeUSD | number:'1.2-2' }}</span></div>
-              <div class="border-t my-2"></div>
-              <div class="flex justify-between items-center text-xl font-bold text-fidelity-turquoise"><span>Total Payable</span><span>KES {{ premium.totalPayableKES | number:'1.2-2' }}</span></div>
-            </div>
-            <div class="mt-6">
-              <button *ngIf="currentStep < 3" (click)="nextStep()" [disabled]="isCurrentStepInvalid()" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Next</button>
-              <div class="mt-4 flex flex-col gap-4">
-                <button *ngIf="currentStep === 3" (click)="handlePayment()" [disabled]="isCurrentStepInvalid()" class="btn-primary rounded-md px-6 py-2 font-medium">Proceed to Payment</button>
-                <button *ngIf="currentStep > 1" (click)="prevStep()" class="text-sm font-medium text-gray-600 hover:text-fidelity-turquoise w-full text-center">Back</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
