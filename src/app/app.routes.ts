@@ -2,8 +2,6 @@ import { Route } from '@angular/router';
 import { initialDataResolver } from 'app/app.resolvers';
 import { NoAuthGuard } from 'app/core/auth/guards/noAuth.guard';
 import { LayoutComponent } from 'app/layout/layout.component';
-// We no longer import components directly here for the golfers quote page
-// import { GolfersQuoteComponent } from './modules/auth/golfers-quote/golfer-quote.component';
 import { DashboardComponent } from './modules/auth/dashboard/dashboard.component';
 import { FidelityAuthSignUpComponent } from './modules/auth/home/sign-up.component';
 
@@ -12,9 +10,9 @@ import { FidelityAuthSignUpComponent } from './modules/auth/home/sign-up.compone
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const appRoutes: Route[] = [
 
-    // ADD THE NEW GOLFERS QUOTE ROUTE HERE
-    // This is a top-level route. It is lazy-loaded and does NOT use the LayoutComponent.
-    // This is why it will render as a full page and not be blank.
+    // THIS IS THE CORRECTED ROUTE
+    // It is a top-level, lazy-loaded route that will render as a full page.
+    // The path now correctly points to its location within the 'auth' module.
     {
         path: 'golfers-quote',
         loadChildren: () => import('app/modules/auth/golfers-quote/golfers-quote.routes').then(m => m.routes),
@@ -70,7 +68,6 @@ export const appRoutes: Route[] = [
                 path: 'dashboard',
                 component: DashboardComponent,
             },
-            // REMOVED THE OLD GOLFERS QUOTE ROUTE
             {
                 path: 'sign-up',
                 loadChildren: () =>

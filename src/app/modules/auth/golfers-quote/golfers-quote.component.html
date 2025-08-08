@@ -4,7 +4,10 @@
     <div class="mx-auto max-w-7xl px-6">
       <div class="flex items-center justify-between py-3">
         <div class="flex items-center gap-4">
-          <img src="https://i.imgur.com/lP1pS4o.png" alt="Fidelity Logo" class="h-10 w-auto" />
+          <img 
+            src="https://media.licdn.com/dms/image/v2/C4D0BAQE1s2Npp6hGgQ/company-logo_200_200/company-logo_200_200/0/1660551127923?e=2147483647&v=beta&t=Zo2bd_nKsv1iQFrO3fqYuGdJIPUA6oWrTKf8Tq9-swg" 
+            alt="Fidelity Logo" 
+            class="h-14 w-auto rounded-lg" />
           <h1 class="text-xl font-semibold text-slate-800">Fidelity Golfers Insurance</h1>
         </div>
         <button (click)="closeForm()" class="flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50" title="Close">
@@ -23,20 +26,118 @@
           <div class="animate-fade-in rounded-lg bg-white p-6 shadow-sm">
             <form [formGroup]="golferForm">
               <h2 class="mb-2 text-2xl font-semibold text-gray-900">Get Your Golfers Insurance Quote</h2>
-              <p class="mb-6 text-gray-600">Complete your details and select a cover option below.</p>
+              <p class="mb-6 text-gray-600">Complete the details and select a cover option below.</p>
               
+              <!-- Policy Holder Type Selector -->
+              <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-900">Who is purchasing this policy?</label>
+                <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-6">
+                  <label class="flex items-center">
+                    <input type="radio" formControlName="policyHolderType" value="individual" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
+                    <span class="ml-3 text-sm text-gray-700">I am the Individual</span>
+                  </label>
+                  <label class="flex items-center">
+                    <input type="radio" formControlName="policyHolderType" value="intermediary" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
+                    <span class="ml-3 text-sm text-gray-700">I am an Intermediary</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Conditional Section for Intermediary Details -->
+              <div *ngIf="f.policyHolderType.value === 'intermediary'" class="mb-6 rounded-md border border-sky-200 bg-sky-50 p-4 animate-fade-in">
+                <h3 class="mb-4 text-lg font-medium text-sky-800">Intermediary Details</h3>
+                <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700">Intermediary Name<span class="text-red-500">*</span></label>
+                    <input type="text" formControlName="intermediaryName" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
+                    <div *ngIf="f.intermediaryName.invalid && (f.intermediaryName.dirty || f.intermediaryName.touched)" class="mt-1 text-xs text-red-500"><span>Intermediary name is required.</span></div>
+                  </div>
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700">Intermediary Number<span class="text-red-500">*</span></label>
+                    <input type="text" formControlName="intermediaryNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
+                    <div *ngIf="f.intermediaryNumber.invalid && (f.intermediaryNumber.dirty || f.intermediaryNumber.touched)" class="mt-1 text-xs text-red-500"><span>Intermediary number is required.</span></div>
+                  </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-sky-200">
+                    <label class="block text-sm font-medium text-gray-900">Intermediary ID Type</label>
+                    <div class="mt-2 flex gap-6">
+                        <label class="flex items-center">
+                            <input type="radio" formControlName="intermediaryIdType" value="ira" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
+                            <span class="ml-3 text-sm text-gray-700">IRA Number</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" formControlName="intermediaryIdType" value="corporate" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
+                            <span class="ml-3 text-sm text-gray-700">Corporate Registration</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div *ngIf="f.intermediaryIdType.value === 'ira'">
+                        <label class="mb-2 block text-sm font-medium text-gray-700">IRA Number<span class="text-red-500">*</span></label>
+                        <input type="text" formControlName="iraNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
+                        <div *ngIf="f.iraNumber.invalid && (f.iraNumber.dirty || f.iraNumber.touched)" class="mt-1 text-xs text-red-500"><span>IRA Number is required.</span></div>
+                    </div>
+                    <div *ngIf="f.intermediaryIdType.value === 'corporate'">
+                        <label class="mb-2 block text-sm font-medium text-gray-700">Corporate Registration Number<span class="text-red-500">*</span></label>
+                        <input type="text" formControlName="corporateRegNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
+                        <div *ngIf="f.corporateRegNumber.invalid && (f.corporateRegNumber.dirty || f.corporateRegNumber.touched)" class="mt-1 text-xs text-red-500"><span>Corporate Registration Number is required.</span></div>
+                    </div>
+                </div>
+              </div>
+
               <!-- Personal Details -->
-              <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label><input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label><input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label><input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label><input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN No.</label><input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
-                <div><label class="mb-2 block text-sm font-medium text-gray-700">Golf Club<span class="text-red-500">*</span></label><input type="text" formControlName="golfClub" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/></div>
+              <h3 class="mb-4 text-lg font-medium text-gray-800 border-t border-gray-200 pt-6">Policy Holder's Personal Details</h3>
+              <div class="mb-6 grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                  <div *ngIf="f.fullName.invalid && (f.fullName.dirty || f.fullName.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.fullName.errors?.['required']">Full name is required.</span>
+                    <span *ngIf="f.fullName.errors?.['minlength']">Full name must be at least 3 characters.</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label>
+                  <input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                  <div *ngIf="f.dob.invalid && (f.dob.dirty || f.dob.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.dob.errors?.['required']">Date of birth is required.</span>
+                    <span *ngIf="f.dob.errors?.['futureDate']">Date of birth cannot be in the future.</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label>
+                  <input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                   <div *ngIf="f.email.invalid && (f.email.dirty || f.email.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.email.errors?.['required']">Email is required.</span>
+                    <span *ngIf="f.email.errors?.['email']">Please enter a valid email address.</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label>
+                  <input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="0712345678"/>
+                   <div *ngIf="f.phoneNumber.invalid && (f.phoneNumber.dirty || f.phoneNumber.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.phoneNumber.errors?.['required']">Phone number is required.</span>
+                    <span *ngIf="f.phoneNumber.errors?.['pattern']">Enter a valid Kenyan number (e.g., 0712345678).</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN No.</label>
+                  <input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="A123456789M"/>
+                   <div *ngIf="f.kraPin.invalid && (f.kraPin.dirty || f.kraPin.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.kraPin.errors?.['pattern']">Enter a valid KRA PIN format.</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-2 block text-sm font-medium text-gray-700">Golf Club<span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="golfClub" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                   <div *ngIf="f.golfClub.invalid && (f.golfClub.dirty || f.golfClub.touched)" class="mt-1 text-xs text-red-500">
+                    <span *ngIf="f.golfClub.errors?.['required']">Golf club is required.</span>
+                  </div>
+                </div>
               </div>
 
               <!-- Cover Selection -->
-              <label class="mb-3 mt-4 block text-sm font-medium text-gray-700">Select a Cover Option<span class="text-red-500">*</span></label>
+              <h3 class="mb-4 text-lg font-medium text-gray-800 border-t border-gray-200 pt-6">Cover Selection</h3>
               <div class="plan-selector">
                 <label *ngFor="let plan of coverOptions">
                   <input type="radio" formControlName="coverOption" [value]="plan.id" />
@@ -51,8 +152,14 @@
               </div>
 
                <!-- Terms & Conditions -->
-              <div class="mt-6 space-y-4">
-                  <label class="flex items-start"><input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/><span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span></label>
+              <div class="mt-6 space-y-4 border-t border-gray-200 pt-6">
+                  <label class="flex items-start">
+                    <input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/>
+                    <span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span>
+                  </label>
+                  <div *ngIf="f.termsAndConditions.invalid && (f.termsAndConditions.dirty || f.termsAndConditions.touched)" class="ml-7 text-xs text-red-500">
+                      You must accept the terms and conditions.
+                  </div>
               </div>
             </form>
           </div>
@@ -78,6 +185,13 @@
                     </tr>
                   </tbody>
                 </table>
+                
+                <div *ngIf="commissionAmount" class="mt-4 pt-4 border-t border-fidelity-turquoise/20 text-sm">
+                    <div class="flex justify-between items-center text-green-700">
+                        <span class="font-medium">Your Commission (10%)</span>
+                        <span class="font-bold">KES {{ commissionAmount | number:'1.2-2' }}</span>
+                    </div>
+                </div>
 
                 <div class="mt-4 border-t border-fidelity-turquoise/20 pt-4 flex justify-between items-center text-xl font-bold text-fidelity-turquoise">
                   <span>Total Premium</span>
@@ -85,8 +199,13 @@
                 </div>
               </div>
               
-              <div class="mt-6">
-                <button (click)="handlePayment()" [disabled]="golferForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Proceed to Payment</button>
+              <div class="mt-6 space-y-3">
+                  <button (click)="handlePayment()" [disabled]="golferForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">
+                      Save & Proceed to Payment
+                  </button>
+                  <button (click)="saveForLater()" [disabled]="golferForm.invalid" class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                      Save for Later
+                  </button>
               </div>
             </ng-container>
 

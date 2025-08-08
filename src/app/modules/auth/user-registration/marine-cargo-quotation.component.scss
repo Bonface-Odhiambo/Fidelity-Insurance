@@ -9,26 +9,20 @@ $fidelity-border-gray: #e5e7eb;
 
 /* Custom button styling for Fidelity */
 .btn-primary {
-  // Default State: Fidelity Turquoise
   background-color: $fidelity-turquoise; 
   color: $fidelity-white;
   transition: background-color 0.3s ease-in-out, transform 0.2s ease;
-
-  // Hover & Active State: Fidelity Lime Green
   &:hover:not(:disabled) {
     background-color: $fidelity-lime;
-    color: $fidelity-dark-text; // Use a dark text color for readability on the light green
-    transform: translateY(-2px); // Add a subtle lift effect
+    color: $fidelity-dark-text;
+    transform: translateY(-2px);
   }
-
-  // Disabled State
   &:disabled {
-    background-color: #9ca3af; // Keep the gray for disabled
+    background-color: #9ca3af;
     cursor: not-allowed;
     opacity: 0.7;
   }
 }
-
 
 /* Default select arrow styling */
 select {
@@ -57,7 +51,6 @@ input, select, textarea {
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
     border-color: transparent;
   }
-  
   &:disabled, &[readonly] {
     background-color: $fidelity-light-gray;
     color: $fidelity-medium-text;
@@ -65,62 +58,29 @@ input, select, textarea {
   }
 }
 
+/* Custom style for readonly inputs to not appear disabled */
+input.readonly-active[readonly] {
+    background-color: $fidelity-white;
+    color: $fidelity-dark-text;
+    cursor: default;
+    border-color: $fidelity-border-gray;
+}
+
 fieldset:disabled {
     opacity: 0.6;
     pointer-events: none;
 }
 
-/* Custom style for the info toast */
-.toast-info {
-  background-color: $fidelity-dark-text;
-}
+/* Toast and Animation styles */
+.toast-info { background-color: $fidelity-dark-text; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.step-content, .fixed.inset-0, .animate-fadeIn { animation: fadeIn 0.4s ease-in-out; }
+@keyframes slideInUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+.fixed.bottom-5 { animation: slideInUp 0.5s ease-in-out; }
 
-/* Keyframe animations for a smoother UX */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.step-content, .fixed.inset-0, .animate-fadeIn {
-   animation: fadeIn 0.4s ease-in-out;
-}
-
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateY(100%); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fixed.bottom-5 {
-    animation: slideInUp 0.5s ease-in-out;
-}
-
-/* Fidelity-specific styles for the Payment Modal */
-:host {
-    --brand-turquoise: #{$fidelity-turquoise};
-    --brand-lime: #{$fidelity-lime};
-}
-
-// Payment Modal re-skinning
-::ng-deep {
-    .payment-modal-container {
-        .modal-header {
-            background-color: var(--brand-turquoise) !important;
-        }
-        .header-icon-wrapper mat-icon {
-            color: var(--brand-lime) !important;
-        }
-        .sub-option-btn.active {
-            color: var(--brand-turquoise) !important;
-        }
-        .action-button {
-            background-color: var(--brand-turquoise) !important;
-        }
-        .payment-tabs {
-            .mat-mdc-tab.mat-mdc-tab-active .mdc-tab__text-label,
-            .mat-mdc-tab-indicator-bar {
-                color: var(--brand-turquoise) !important;
-                background-color: var(--brand-turquoise) !important;
-            }
-        }
+/* Global class to apply for modal styling from the component that opens it */
+::ng-deep .payment-dialog-container {
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+        border-radius: 16px !important;
     }
 }
