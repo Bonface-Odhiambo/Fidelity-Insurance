@@ -52,9 +52,55 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
   
   readonly coverOptions: CoverOption[] = [
-    { id: 'A', name: 'Option A', premium: 5000, benefits: [ { name: 'Golf Equipment', limit: 100000 }, { name: 'Personal Effects', limit: 10000 }, { name: 'Legal Liability', limit: 1000000 }, { name: 'Personal Accident', limit: 250000 }, { name: 'Hole in One', limit: 30000 } ] },
-    { id: 'B', name: 'Option B', premium: 7500, benefits: [ { name: 'Golf Equipment', limit: 150000 }, { name: 'Personal Effects', limit: 10000 }, { name: 'Legal Liability', limit: 1000000 }, { name: 'Personal Accident', limit: 250000 }, { name: 'Hole in One', limit: 40000 } ] },
-    { id: 'C', name: 'Option C', premium: 10000, benefits: [ { name: 'Golf Equipment', limit: 200000 }, { name: 'Personal Effects', limit: 10000 }, { name: 'Legal Liability', limit: 1000000 }, { name: 'Personal Accident', limit: 250000 }, { name: 'Hole in One', limit: 50000 } ] },
+    { 
+      id: 'A', 
+      name: 'Option A', 
+      premium: 3000, 
+      benefits: [ 
+          { name: 'Golf Equipment', limit: 100000 }, 
+          { name: 'Personal Effects', limit: 10000 }, 
+          { name: 'Legal Liability', limit: 1000000 }, 
+          { name: 'Personal Accident', limit: 250000 }, 
+          { name: 'Hole in One', limit: 30000 },
+          { name: 'Medical Expenses for caddies', limit: 30000 }
+      ] 
+    },
+    { 
+      id: 'B', 
+      name: 'Option B', 
+      premium: 5000, 
+      benefits: [ 
+          { name: 'Golf Equipment', limit: 150000 }, 
+          { name: 'Personal Effects', limit: 10000 }, 
+          { name: 'Legal Liability', limit: 1000000 }, 
+          { name: 'Personal Accident', limit: 250000 }, 
+          { name: 'Hole in One', limit: 40000 },
+          { name: 'Medical Expenses for caddies', limit: 30000 }
+      ] 
+    },
+    { 
+      id: 'C', 
+      name: 'Option C', 
+      premium: 6000, 
+      benefits: [ 
+          { name: 'Golf Equipment', limit: 200000 }, 
+          { name: 'Personal Effects', limit: 10000 }, 
+          { name: 'Legal Liability', limit: 1000000 }, 
+          { name: 'Personal Accident', limit: 250000 }, 
+          { name: 'Hole in One', limit: 50000 },
+          { name: 'Medical Expenses for caddies', limit: 30000 }
+      ] 
+    },
+  ];
+
+  // Defines the order of rows in the table
+  readonly benefitRows: string[] = [
+    'Golf Equipment',
+    'Personal Effects',
+    'Legal Liability',
+    'Personal Accident',
+    'Hole in One',
+    'Medical Expenses for caddies'
   ];
 
   constructor(
@@ -95,6 +141,13 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
     this.unsubscribe$.complete();
   }
   
+  // Helper to get a specific benefit limit for the table
+  getBenefitLimit(planId: 'A' | 'B' | 'C', benefitName: string): number {
+    const plan = this.coverOptions.find(p => p.id === planId);
+    const benefit = plan?.benefits.find(b => b.name === benefitName);
+    return benefit?.limit || 0;
+  }
+
   private setupDynamicValidators(): void {
     const typeControl = this.f.policyHolderType;
     const idTypeControl = this.f.intermediaryIdType;

@@ -98,7 +98,7 @@
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label>
-                  <input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
+                  <input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="dd/mm/yyyy" />
                   <div *ngIf="f.dob.invalid && (f.dob.dirty || f.dob.touched)" class="mt-1 text-xs text-red-500">
                     <span *ngIf="f.dob.errors?.['required']">Date of birth is required.</span>
                     <span *ngIf="f.dob.errors?.['futureDate']">Date of birth cannot be in the future.</span>
@@ -136,21 +136,46 @@
                 </div>
               </div>
 
-              <!-- Cover Selection -->
+              <!-- Cover Selection Table -->
               <h3 class="mb-4 text-lg font-medium text-gray-800 border-t border-gray-200 pt-6">Cover Selection</h3>
-              <div class="plan-selector">
-                <label *ngFor="let plan of coverOptions">
-                  <input type="radio" formControlName="coverOption" [value]="plan.id" />
-                  <div class="plan-card">
-                    <div class="plan-name">{{ plan.name }}</div>
-                    <div class="plan-premium">
-                      KES {{ plan.premium | number:'1.0-0' }}
-                      <span class="period">/ year</span>
-                    </div>
-                  </div>
-                </label>
+              <div class="table-container-responsive">
+                <table class="cover-table">
+                  <thead>
+                    <tr>
+                      <th class="risk-header">RISK INSURED</th>
+                      <th *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+                        {{ plan.name }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let benefitName of benefitRows">
+                      <td>{{ benefitName }}</td>
+                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+                        KES {{ getBenefitLimit(plan.id, benefitName) | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="premium-row">
+                      <td>PREMIUM</td>
+                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+                        KES {{ plan.premium | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                    <tr class="select-row">
+                      <td></td>
+                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+                        <label>
+                          <input type="radio" formControlName="coverOption" [value]="plan.id" class="sr-only"/>
+                          <span class="select-button">Select Plan</span>
+                        </label>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
-
+              
                <!-- Terms & Conditions -->
               <div class="mt-6 space-y-4 border-t border-gray-200 pt-6">
                   <label class="flex items-start">
