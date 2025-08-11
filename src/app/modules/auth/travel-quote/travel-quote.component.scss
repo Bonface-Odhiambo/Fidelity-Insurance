@@ -33,141 +33,78 @@ input, select, textarea {
     border-color: transparent;
   }
 }
-
 .ng-invalid.ng-touched:not(form) { border-color: #f87171 !important; }
 
-/* --- Plan Selector --- */
-.plan-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-
-  label {
-    position: relative;
-    border: 2px solid $fidelity-border-gray;
-    border-radius: 0.75rem;
-    padding: 1.25rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    display: flex;
-
-    &:hover {
-      border-color: $fidelity-lime;
-      background-color: rgba($fidelity-lime, 0.1);
-      .plan-benefits-popup {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-      }
-    }
-  }
-
-  input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-  }
-
-  input[type="radio"]:checked + .plan-card {
-    border-color: $fidelity-turquoise;
-    box-shadow: 0 0 0 2px $fidelity-turquoise;
-    background-color: rgba($fidelity-turquoise, 0.05);
-    .plan-name { color: $fidelity-turquoise; }
-  }
-
-  .plan-card {
-    text-align: left;
-    width: 100%;
-    .plan-name {
-      font-size: 1.125rem;
-      font-weight: 700;
-      color: $fidelity-dark-text;
-      margin-bottom: 0.25rem;
-    }
-    .plan-description {
-      font-size: 0.8rem;
-      color: $fidelity-medium-text;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid $fidelity-border-gray;
-      padding-bottom: 1rem;
-    }
-    .plan-benefits-summary {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      space-y: 0.5rem;
-      
-      li {
-        display: flex;
-        align-items: center;
-        font-size: 0.8rem;
-        color: $fidelity-medium-text;
-        mat-icon {
-          font-size: 1rem;
-          width: 1rem;
-          height: 1rem;
-          margin-right: 0.5rem;
-          color: $fidelity-lime;
-        }
-      }
-    }
-  }
-
-  .plan-benefits-popup {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%) translateY(10px) scale(0.95);
-    width: 300px;
-    background-color: $fidelity-dark-text;
-    color: $fidelity-white;
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    z-index: 20;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 8px solid $fidelity-dark-text;
-    }
-
-    .popup-title {
-      font-weight: 700;
-      font-size: 1rem;
-      margin-bottom: 0.75rem;
-      color: $fidelity-lime;
-    }
-    .popup-benefit-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      li {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.4rem 0;
-        font-size: 0.85rem;
-        border-bottom: 1px solid rgba($fidelity-white, 0.1);
-        &:last-child {
-          border-bottom: none;
-        }
-        .limit {
-          font-weight: 600;
-          color: $fidelity-white;
-        }
-      }
-    }
-  }
+/* --- Cover Selection Table --- */
+.table-container-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+.cover-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+  border: 1px solid $fidelity-border-gray;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid $fidelity-border-gray;
+    vertical-align: middle;
+    transition: background-color 0.3s ease;
+    font-size: 0.85rem;
+  }
+  
+  thead th {
+    background-color: $fidelity-light-gray;
+    vertical-align: top;
+    padding: 1rem 0.75rem;
+    .plan-name { font-weight: 700; font-size: 1rem; color: $fidelity-dark-text; }
+    .plan-description { font-size: 0.75rem; color: $fidelity-medium-text; font-weight: 400; }
+  }
+
+  .benefit-header, tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: $fidelity-dark-text;
+    background-color: $fidelity-light-gray;
+    min-width: 200px;
+  }
+
+  .category-row td {
+    background-color: darken($fidelity-light-gray, 3%);
+    font-weight: 700;
+    color: $fidelity-dark-text;
+    text-align: left;
+  }
+  
+  .premium-row td {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: $fidelity-turquoise;
+  }
+
+  .select-row td { padding: 0.75rem; }
+
+  .selected-plan { background-color: rgba($fidelity-turquoise, 0.05); }
+  thead .selected-plan { border-top: 2px solid $fidelity-turquoise; border-left: 2px solid $fidelity-turquoise; border-right: 2px solid $fidelity-turquoise; }
+  tbody .selected-plan, tfoot .selected-plan { border-left: 2px solid $fidelity-turquoise; border-right: 2px solid $fidelity-turquoise; }
+  tfoot .select-row .selected-plan { border-bottom: 2px solid $fidelity-turquoise; }
+
+  .select-button {
+    display: inline-block; padding: 0.5rem 1rem; width: 100%; border-radius: 0.375rem;
+    border: 1px solid $fidelity-border-gray; background-color: $fidelity-white;
+    color: $fidelity-medium-text; cursor: pointer; font-weight: 500; transition: all 0.2s ease-in-out;
+  }
+  
+  input[type="radio"]:hover + .select-button { border-color: $fidelity-lime; color: $fidelity-dark-text; }
+  input[type="radio"]:checked + .select-button { background-color: $fidelity-turquoise; color: $fidelity-white; border-color: $fidelity-turquoise; }
+  input[type="radio"].sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+}
+
 
 /* --- Review Section Styles --- */
 .review-section {

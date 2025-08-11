@@ -1,29 +1,20 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { Subject, take, takeUntil } from 'rxjs';
 import { MpesaPaymentModalComponent, PaymentResult } from '../shared/payment-modal.component';
+import { AuthService } from 'app/core/auth/auth.service'; // Assuming AuthService exists
 
 // --- Data Structures ---
-interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; keyBenefits: string[]; }
+interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; type: 'standard' | 'student'; keyBenefits?: string[]; }
 interface Benefit { name: string; limit: string; }
-interface Premium { baseRateUSD: number; subtotalUSD: number; groupDiscountUSD: number; ageSurchargeUSD: number; winterSportsSurchargeUSD: number; totalPayableUSD: number; totalPayableKES: number; durationDays: number; }
-
-// --- Custom Validators ---
-export function ageValidator(minAge: number) {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) return null;
-    const today = new Date();
-    const birthDate = new Date(control.value);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age < minAge ? { 'minAge': { requiredAge: minAge, actualAge: age } } : null;
-  };
+interface BenefitCategory { name: string; benefits: string[]; }
+interface Premium {
+  baseRateUSD: number; subtotalUSD: number; groupDiscountUSD: number; ageSurchargeUSD: number; winterSportsSurchargeUSD: number;
+  totalPayableUSD: number; totalPayableKES: number; groupDiscountPercentage: number; ageAdjustmentPercentage: number;
 }
 
 @Component({
@@ -33,151 +24,194 @@ export function ageValidator(minAge: number) {
   templateUrl: './travel-quote.component.html',
   styleUrls: ['./travel-quote.component.scss'],
 })
-export class TravelQuoteComponent implements OnInit {
+export class TravelQuoteComponent implements OnInit, OnDestroy {
   currentStep: number = 1;
-  quotationForm: FormGroup;
+  quoteForm: FormGroup;
   travelerDetailsForm: FormGroup;
   premium: Premium = this.resetPremium();
   selectedPlanDetails: TravelPlan | null = null;
-  travelPlans: TravelPlan[] = [];
-
-  private readonly USD_TO_KES_RATE = 130.00;
-  private rates: { [duration: string]: { [plan: string]: number } } = { '4': { AFRICA: 9, ASIA: 9, EUROPE: 11, BASIC: 15, PLUS: 27, EXTRA: 34 }, '7': { AFRICA: 12, ASIA: 14, EUROPE: 15, BASIC: 20, PLUS: 36, EXTRA: 43 }, '10': { AFRICA: 17, ASIA: 19, EUROPE: 22, BASIC: 28, PLUS: 51, EXTRA: 62 }, '15': { AFRICA: 18, ASIA: 20, EUROPE: 25, BASIC: 30, PLUS: 55, EXTRA: 67 }, '21': { AFRICA: 20, ASIA: 25, EUROPE: 28, BASIC: 32, PLUS: 58, EXTRA: 72 }, '31': { AFRICA: 32, ASIA: 33, EUROPE: 38, BASIC: 48, PLUS: 90, EXTRA: 111 }, '62': { AFRICA: 50, ASIA: 52, EUROPE: 57, BASIC: 70, PLUS: 138, EXTRA: 165 }, '92': { AFRICA: 59, ASIA: 59, EUROPE: 74, BASIC: 98, PLUS: 179, EXTRA: 202 }, '180': { AFRICA: 70, ASIA: 70, EUROPE: 80, BASIC: 106, PLUS: 193, EXTRA: 240 }, '365': { AFRICA: 82, ASIA: 90, EUROPE: 103, BASIC: 136, PLUS: 248, EXTRA: 295 }, };
-  private allPlanBenefits: { [key: string]: Benefit[] } = { 'AFRICA': [ { name: 'Medical Expenses', limit: '$15,000' }, { name: 'Emergency Evacuation', limit: '$15,000' }, { name: 'Mortal Remains Repatriation', limit: '$10,000' }, { name: 'Checked-in Baggage Loss', limit: '$1,500' }, { name: 'Luggage Delay', limit: '$250' } ], 'EUROPE': [ { name: 'Medical Expenses', limit: '€36,000' }, { name: 'Emergency Evacuation', limit: '€36,000' }, { name: 'Mortal Remains Repatriation', limit: '€10,000' }, { name: 'Accidental Death (Public Transport)', limit: '€10,000' }, { name: 'Delayed Departure', limit: '300€' } ], 'BASIC': [ { name: 'Medical Expenses', limit: '$40,000' }, { name: 'Emergency Evacuation', limit: '$40,000' }, { name: 'Personal Civil Liability', limit: '$100,000' }, { name: 'Journey Cancellation', limit: '$2,000' }, { name: 'Missed Travel Connection', limit: '$300' } ], 'PLUS': [ { name: 'Medical Expenses', limit: '$75,000' }, { name: 'Emergency Evacuation', limit: '$75,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Journey Cancellation', limit: '$3,000' }, { name: 'Missed Travel Connection', limit: '$500' } ], 'EXTRA': [ { name: 'Medical Expenses', limit: '$150,000' }, { name: 'Emergency Evacuation', limit: '$150,000' }, { name: 'Personal Civil Liability', limit: '$150,000' }, { name: 'Accidental Death (Public Transport)', limit: '$50,000' }, { name: 'Journey Cancellation', limit: '$3,000' } ] };
+  allTravelPlans: TravelPlan[] = [];
+  displayedPlans: TravelPlan[] = [];
   
-  constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog) {
-    this.travelerDetailsForm = this.fb.group({
-      title: ['Mr', Validators.required],
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
-      dob: ['', [Validators.required, this.noFutureDatesValidator, ageValidator(18)]],
-      beneficiary: ['', [Validators.required, Validators.minLength(3)]],
-      purposeOfTrip: ['', Validators.required],
-      passportNo: ['', [Validators.pattern(/^[A-Z0-9]{6,9}$/i)]],
-      kraPin: ['', [Validators.pattern(/^[A-Z]\d{9}[A-Z]$/i)]],
-      email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^0[17]\d{8}$/)]],
-      homeDoctor: [''],
+  readonly standardDurations = [ {value: '4', label: 'Up to 4 days'}, {value: '7', label: 'Up to 7 days'}, {value: '10', label: 'Up to 10 days'}, {value: '15', label: 'Up to 15 days'}, {value: '21', label: 'Up to 21 days'}, {value: '31', label: 'Up to 31 days'}, {value: '62', label: 'Up to 62 days'}, {value: '92', label: 'Up to 92 days'}, {value: '180', label: 'Up to 180 days'}, {value: '365', label: '1 year multi-trip'} ];
+  readonly studentDurations = [ {value: '180', label: '6 months'}, {value: '270', label: '9 months'}, {value: '365', label: '1 year'} ];
+  
+  private unsubscribe$ = new Subject<void>();
+  private readonly USD_TO_KES_RATE = 130.00;
+
+  private standardRates: { [duration: string]: { [plan: string]: number } } = { '4': { 'AFRICA_ASIA': 9, 'EUROPE': 11, 'WW_BASIC': 15, 'WW_PLUS': 27, 'WW_EXTRA': 34 }, '7': { 'AFRICA_ASIA': 12, 'EUROPE': 15, 'WW_BASIC': 20, 'WW_PLUS': 36, 'WW_EXTRA': 43 }, '10': { 'AFRICA_ASIA': 17, 'EUROPE': 22, 'WW_BASIC': 28, 'WW_PLUS': 51, 'WW_EXTRA': 62 }, '15': { 'AFRICA_ASIA': 18, 'EUROPE': 25, 'WW_BASIC': 30, 'WW_PLUS': 55, 'WW_EXTRA': 67 }, '21': { 'AFRICA_ASIA': 20, 'EUROPE': 28, 'WW_BASIC': 32, 'WW_PLUS': 58, 'WW_EXTRA': 72 }, '31': { 'AFRICA_ASIA': 32, 'EUROPE': 38, 'WW_BASIC': 48, 'WW_PLUS': 90, 'WW_EXTRA': 111 }, '62': { 'AFRICA_ASIA': 50, 'EUROPE': 57, 'WW_BASIC': 70, 'WW_PLUS': 138, 'WW_EXTRA': 165 }, '92': { 'AFRICA_ASIA': 59, 'EUROPE': 74, 'WW_BASIC': 98, 'WW_PLUS': 179, 'WW_EXTRA': 202 }, '180': { 'AFRICA_ASIA': 70, 'EUROPE': 80, 'WW_BASIC': 106, 'WW_PLUS': 193, 'WW_EXTRA': 240 }, '365': { 'AFRICA_ASIA': 82, 'EUROPE': 103, 'WW_BASIC': 136, 'WW_PLUS': 248, 'WW_EXTRA': 295 }, };
+  private studentRates: { [duration: string]: { [plan: string]: number } } = { '180': { 'STUDENT_CLASSIC': 361, 'STUDENT_PREMIUM': 496 }, '270': { 'STUDENT_CLASSIC': 470, 'STUDENT_PREMIUM': 626 }, '365': { 'STUDENT_CLASSIC': 602, 'STUDENT_PREMIUM': 715 }, };
+  
+  benefitCategories: BenefitCategory[] = [ { name: 'Medical & Emergency Assistance', benefits: ['Medical expenses & hospitalization abroad', 'Emergency medical evacuation' ]}, { name: 'Personal Accident / Liability', benefits: ['Personal Civil Liability', 'Accidental Death' ]}, { name: 'Cancellation & Delays', benefits: ['Journey Cancellation', 'Delayed Departure' ]} ];
+  private allPlanBenefits: { [key: string]: { [key: string]: string } } = {
+    'AFRICA_ASIA': { 'Medical expenses & hospitalization abroad': '$15,000', 'Emergency medical evacuation': '$15,000' },
+    'EUROPE': { 'Medical expenses & hospitalization abroad': '€36,000', 'Emergency medical evacuation': '€36,000', 'Delayed Departure': '€300' },
+    'WW_BASIC': { 'Medical expenses & hospitalization abroad': '$40,000', 'Personal Civil Liability': '$100,000', 'Journey Cancellation': '$2,000' },
+    'WW_PLUS': { 'Medical expenses & hospitalization abroad': '$75,000', 'Personal Civil Liability': '$150,000' },
+    'WW_EXTRA': { 'Medical expenses & hospitalization abroad': '$150,000', 'Accidental Death': '$50,000' },
+    'STUDENT_CLASSIC': { 'Medical expenses & hospitalization abroad': '60,000', 'Emergency medical evacuation': '30,000', 'Personal Civil Liability': '50,000' },
+    'STUDENT_PREMIUM': { 'Medical expenses & hospitalization abroad': '100,000', 'Emergency medical evacuation': '50,000', 'Personal Civil Liability': '50,000' },
+  };
+  
+  constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog, private authService: AuthService) {
+    this.quoteForm = this.fb.group({
+      policyType: ['standard', Validators.required],
+      duration: ['', Validators.required],
+      plan: ['', Validators.required],
     });
 
-    this.quotationForm = this.fb.group({
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
+    this.travelerDetailsForm = this.fb.group({
+      fullName: ['', Validators.required],
+      dob: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', [Validators.required, Validators.pattern(/^0[17]\d{8}$/)]],
       numTravelers: [1, [Validators.required, Validators.min(1)]],
-      plan: ['AFRICA', Validators.required],
       winterSports: [false],
-      termsAndConditions: [false, Validators.requiredTrue],
-    }, { validators: this.dateRangeValidator });
+    });
   }
 
-  get f() { return this.travelerDetailsForm.controls; }
-  get qf() { return this.quotationForm.controls; }
+  get qf() { return this.quoteForm.controls; }
 
   ngOnInit(): void {
-    this.travelPlans = [
-      { id: 'AFRICA', name: 'Africa/Asia', description: 'Value cover for regional travel', keyBenefits: [], benefits: this.allPlanBenefits['AFRICA'] },
-      { id: 'EUROPE', name: 'Europe Basic', description: 'Essential cover for Europe & Schengen', keyBenefits: [], benefits: this.allPlanBenefits['EUROPE'] },
-      { id: 'BASIC', name: 'Worldwide Basic', description: 'Basic worldwide cover for essential needs', keyBenefits: [], benefits: this.allPlanBenefits['BASIC'] },
-      { id: 'PLUS', name: 'Worldwide Plus', description: 'Comprehensive worldwide insurance', keyBenefits: [], benefits: this.allPlanBenefits['PLUS'] },
-      { id: 'EXTRA', name: 'Worldwide Extra', description: 'Maximum protection for global travel', keyBenefits: [], benefits: this.allPlanBenefits['EXTRA'] }
-    ];
+    this.initializePlans();
+    this.updateDisplayedPlans(this.qf.policyType.value);
 
-    const recalculate = () => { if (this.quotationForm.valid && this.travelerDetailsForm.valid) this.calculatePremium(); };
-    this.quotationForm.valueChanges.subscribe(recalculate);
-    this.travelerDetailsForm.get('dob')?.valueChanges.subscribe(recalculate);
+    // Specific listener ONLY for policyType changes
+    this.qf.policyType.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(type => {
+        this.updateDisplayedPlans(type);
+    });
+    
+    // Listener for traveler details to recalculate premium in later steps
+    this.travelerDetailsForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+        if (this.currentStep > 1) {
+            this.calculatePremium();
+        }
+    });
   }
 
+  ngOnDestroy(): void { this.unsubscribe$.next(); this.unsubscribe$.complete(); }
+  
+  updateDisplayedPlans(type: 'standard' | 'student'): void {
+    this.displayedPlans = this.allTravelPlans.filter(p => p.type === type);
+    // When policy type changes, reset the duration and plan selections
+    // This is the correct place for this logic
+    this.qf.duration.setValue('');
+    this.qf.plan.setValue('');
+  }
+
+  getPlanPremium(planId: string): number {
+    const { duration } = this.quoteForm.value;
+    if (!duration) return 0;
+    
+    const isStudent = this.qf.policyType.value === 'student';
+    const rateTable = isStudent ? this.studentRates : this.standardRates;
+    const baseRateUSD = rateTable[duration]?.[planId] || 0;
+    
+    return baseRateUSD * this.USD_TO_KES_RATE;
+  }
+
+  getBenefitLimit(planId: string, benefitName: string): string {
+    return this.allPlanBenefits[planId]?.[benefitName] || 'N/A';
+  }
+  
   calculatePremium(): void {
-    if (!this.quotationForm.valid) { this.premium = this.resetPremium(); return; }
-    const values = this.quotationForm.value;
-    const diffTime = Math.abs(new Date(values.endDate).getTime() - new Date(values.startDate).getTime());
-    const durationDays = Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1, 1);
-    const durationTier = this.getDurationTier(durationDays);
-    if (!durationTier) { this.premium = this.resetPremium(); return; }
-    
-    const ratePlanId = values.plan;
-    const baseRateUSD = this.rates[durationTier]?.[ratePlanId] || 0;
-    let subtotalUSD = baseRateUSD * values.numTravelers;
-
-    let groupDiscountUSD = 0;
-    if (values.numTravelers >= 201) groupDiscountUSD = subtotalUSD * 0.25;
-    else if (values.numTravelers >= 101) groupDiscountUSD = subtotalUSD * 0.20;
-    else if (values.numTravelers >= 51) groupDiscountUSD = subtotalUSD * 0.15;
-    else if (values.numTravelers >= 21) groupDiscountUSD = subtotalUSD * 0.10;
-    else if (values.numTravelers >= 10) groupDiscountUSD = subtotalUSD * 0.05;
-
-    let ageSurchargeUSD = 0;
-    const dob = this.travelerDetailsForm.get('dob')?.value;
-    if (dob) {
-        const age = new Date().getFullYear() - new Date(dob).getFullYear();
-        if (age < 3) ageSurchargeUSD = -(subtotalUSD * 0.50);
-        else if (age >= 81) ageSurchargeUSD = subtotalUSD * 3.00;
-        else if (age >= 76) ageSurchargeUSD = subtotalUSD * 1.00;
-        else if (age >= 66) ageSurchargeUSD = subtotalUSD * 0.50;
+    if (this.quoteForm.invalid || this.travelerDetailsForm.invalid) {
+      this.premium = this.resetPremium(); return;
     }
-    
-    const winterSportsSurchargeUSD = values.winterSports ? subtotalUSD * 1.00 : 0;
-    const totalPayableUSD = subtotalUSD - groupDiscountUSD + ageSurchargeUSD + winterSportsSurchargeUSD;
-    const totalPayableKES = totalPayableUSD * this.USD_TO_KES_RATE;
 
-    this.premium = { baseRateUSD, subtotalUSD, groupDiscountUSD, ageSurchargeUSD, winterSportsSurchargeUSD, totalPayableUSD, totalPayableKES, durationDays };
-    this.selectedPlanDetails = this.getFullPlanDetails(values.plan);
+    const trip = this.quoteForm.value;
+    const traveler = this.travelerDetailsForm.value;
+    
+    const rateTable = trip.policyType === 'student' ? this.studentRates : this.standardRates;
+    const baseRateUSD = rateTable[trip.duration]?.[trip.plan] || 0;
+    
+    let subtotalUSD = baseRateUSD * traveler.numTravelers;
+
+    let groupDiscountPercentage = 0;
+    if (traveler.numTravelers >= 10) groupDiscountPercentage = 5;
+    if (traveler.numTravelers >= 21) groupDiscountPercentage = 10;
+    const groupDiscountUSD = subtotalUSD * (groupDiscountPercentage / 100);
+
+    let ageAdjustmentPercentage = 0;
+    const age = new Date().getFullYear() - new Date(traveler.dob).getFullYear();
+    if (age >= 66) ageAdjustmentPercentage = 50;
+    const ageSurchargeUSD = subtotalUSD * (ageAdjustmentPercentage / 100);
+    
+    const winterSportsSurchargeUSD = traveler.winterSports ? subtotalUSD * 1.00 : 0;
+    const totalPayableUSD = subtotalUSD - groupDiscountUSD + ageSurchargeUSD + winterSportsSurchargeUSD;
+    
+    this.premium = {
+      baseRateUSD, subtotalUSD, groupDiscountUSD, ageSurchargeUSD, winterSportsSurchargeUSD, totalPayableUSD,
+      totalPayableKES: totalPayableUSD * this.USD_TO_KES_RATE,
+      groupDiscountPercentage, ageAdjustmentPercentage
+    };
+
+    this.selectedPlanDetails = this.allTravelPlans.find(p => p.id === this.qf.plan.value) || null;
   }
 
-  nextStep(): void {
-    if (this.isCurrentStepInvalid()) {
-      if(this.currentStep === 1) this.travelerDetailsForm.markAllAsTouched();
-      if(this.currentStep === 2) this.quotationForm.markAllAsTouched();
+  nextStep(): void { 
+    if(this.currentStep === 1 && this.quoteForm.invalid) {
+      this.quoteForm.markAllAsTouched();
       return;
     }
-    if (this.currentStep === 2) {
-      this.saveQuoteToLocalStorage();
+    if(this.currentStep === 2 && this.travelerDetailsForm.invalid) {
+      this.travelerDetailsForm.markAllAsTouched();
+      return;
     }
-    this.currentStep++;
+    if(this.currentStep < 3) {
+      this.calculatePremium(); // ensure premium is calculated before moving to next step
+      this.currentStep++;
+    } 
   }
-
   prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
 
-  isCurrentStepInvalid(): boolean {
-    if (this.currentStep === 1) return this.travelerDetailsForm.invalid;
-    if (this.currentStep === 2) return this.quotationForm.invalid;
-    if (this.currentStep === 3) return this.travelerDetailsForm.invalid || this.quotationForm.invalid;
-    return false;
-  }
-  
-  private saveQuoteToLocalStorage(): void {
-    if (this.travelerDetailsForm.invalid || this.quotationForm.invalid) return;
-    const combinedQuote = { id: `FID-TRV-${Date.now()}`, travelerDetails: this.travelerDetailsForm.value, quoteDetails: this.quotationForm.value, premium: this.premium, status: 'pending' };
-    const existingQuotes = JSON.parse(localStorage.getItem('pendingTravelQuotes') || '[]');
-    existingQuotes.push(combinedQuote);
-    localStorage.setItem('pendingTravelQuotes', JSON.stringify(existingQuotes));
-  }
-  
   handlePayment(): void {
-    if (this.isCurrentStepInvalid()) return;
+    if (this.travelerDetailsForm.invalid) return;
+    this.authService.check().pipe(take(1)).subscribe(isAuthenticated => {
+        if (isAuthenticated) {
+            this.openPaymentDialog();
+        } else {
+            this.router.navigate(['/']);
+        }
+    });
+  }
+
+  private openPaymentDialog(): void {
     const dialogRef = this.dialog.open(MpesaPaymentModalComponent, {
-      data: { amount: this.premium.totalPayableKES, phoneNumber: this.travelerDetailsForm.get('phoneNumber')?.value, reference: `FID-TRV-${Date.now()}`, description: `${this.getPlanName(this.quotationForm.value.plan)} Cover` }
+      data: {
+        amount: this.premium.totalPayableKES,
+        phoneNumber: this.travelerDetailsForm.get('phoneNumber')?.value,
+        reference: `FID-TRV-${Date.now()}`,
+        description: `${this.selectedPlanDetails?.name} Cover`
+      }
     });
     dialogRef.afterClosed().subscribe((result: PaymentResult | null) => { if (result?.success) this.router.navigate(['/dashboard']); });
   }
-
-  private getDurationTier(days: number): string | null {
-    if (days <= 4) return '4'; if (days <= 7) return '7'; if (days <= 10) return '10'; if (days <= 15) return '15'; if (days <= 21) return '21'; if (days <= 31) return '31'; if (days <= 62) return '62'; if (days <= 92) return '92'; if (days <= 180) return '180'; if (days <= 365) return '365';
-    return null;
+  
+  getDurationText(value: string): string {
+    const allDurations = [...this.standardDurations, ...this.studentDurations];
+    return allDurations.find(d => d.value === value)?.label || 'N/A';
   }
   
-  getToday(): string { return new Date().toISOString().split('T')[0]; }
-  
-  dateRangeValidator(group: AbstractControl): { [key: string]: boolean } | null { const start = group.get('startDate')?.value; const end = group.get('endDate')?.value; return start && end && start > end ? { invalidDateRange: true } : null; }
-  
-  noFutureDatesValidator(control: AbstractControl): { [key: string]: boolean } | null { if (!control.value) return null; const selectedDate = new Date(control.value); const today = new Date(); today.setHours(0, 0, 0, 0); return selectedDate > today ? { futureDate: true } : null; }
-
-  getPlanName(planId: string): string { return this.travelPlans.find(p => p.id === planId)?.name || 'Unknown Plan'; }
-  
   closeForm(): void { this.router.navigate(['/dashboard']); }
-  
-  private resetPremium(): Premium { return { baseRateUSD: 0, subtotalUSD: 0, groupDiscountUSD: 0, ageSurchargeUSD: 0, winterSportsSurchargeUSD: 0, totalPayableUSD: 0, totalPayableKES: 0, durationDays: 0 }; }
-  
-  private getFullPlanDetails(planId: string): TravelPlan | null { const planInfo = this.travelPlans.find(p => p.id === planId); return planInfo ? { ...planInfo, benefits: this.allPlanBenefits[planId] || [] } : null; }
-
   abs(value: number): number { return Math.abs(value); }
+
+  private resetPremium(): Premium { return { baseRateUSD: 0, subtotalUSD: 0, groupDiscountUSD: 0, ageSurchargeUSD: 0, winterSportsSurchargeUSD: 0, totalPayableUSD: 0, totalPayableKES: 0, groupDiscountPercentage: 0, ageAdjustmentPercentage: 0 }; }
+
+  private initializePlans(): void {
+    this.allTravelPlans = [
+      { id: 'AFRICA_ASIA', name: 'Africa/Asia', description: 'Value cover for regional travel', type: 'standard', benefits: [] },
+      { id: 'EUROPE', name: 'Europe Basic', description: 'Essential cover for Europe & Schengen', type: 'standard', benefits: [] },
+      { id: 'WW_BASIC', name: 'Worldwide Basic', description: 'Basic worldwide cover for essentials', type: 'standard', benefits: [] },
+      { id: 'WW_PLUS', name: 'Worldwide Plus', description: 'Comprehensive worldwide cover', type: 'standard', benefits: []},
+      { id: 'WW_EXTRA', name: 'Worldwide Extra', description: 'Maximum protection for global travel', type: 'standard', benefits: []},
+      { id: 'STUDENT_CLASSIC', name: 'Students Classic', description: 'Worldwide student cover', type: 'student', benefits: [] },
+      { id: 'STUDENT_PREMIUM', name: 'Students Premium', description: 'Enhanced worldwide student cover', type: 'student', benefits: [] },
+    ];
+    this.allTravelPlans.forEach(plan => {
+      plan.benefits = this.benefitCategories.flatMap(cat => cat.benefits)
+        .map(bName => ({ name: bName, limit: this.getBenefitLimit(plan.id, bName) }))
+        .filter(b => b.limit !== 'N/A');
+    });
+  }
 }
