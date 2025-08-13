@@ -93,16 +93,6 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // Defines the order of rows in the table
-  readonly benefitRows: string[] = [
-    'Golf Equipment',
-    'Personal Effects',
-    'Legal Liability',
-    'Personal Accident',
-    'Hole in One',
-    'Medical Expenses for caddies'
-  ];
-
   constructor(
     private fb: FormBuilder, 
     private router: Router, 
@@ -120,9 +110,6 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
       golfClub: ['', Validators.required],
       intermediaryName: [''],
       intermediaryNumber: [''],
-      intermediaryIdType: ['ira'],
-      iraNumber: [''],
-      corporateRegNumber: [''],
       coverOption: ['A', Validators.required],
       termsAndConditions: [false, Validators.requiredTrue],
     });
@@ -131,7 +118,7 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
   get f() { return this.golferForm.controls; }
 
   ngOnInit(): void {
-    this.onPlanChange();
+    this.onPlanChange(); // Set initial plan on load
     this.setupDynamicValidators();
     this.golferForm.get('coverOption')?.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.onPlanChange());
   }
@@ -140,58 +127,27 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
   }
-  
-  // Helper to get a specific benefit limit for the table
-  getBenefitLimit(planId: 'A' | 'B' | 'C', benefitName: string): number {
-    const plan = this.coverOptions.find(p => p.id === planId);
-    const benefit = plan?.benefits.find(b => b.name === benefitName);
-    return benefit?.limit || 0;
-  }
 
   private setupDynamicValidators(): void {
     const typeControl = this.f.policyHolderType;
-    const idTypeControl = this.f.intermediaryIdType;
 
     typeControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(type => {
-      this.clearIntermediaryValidators();
+      const intermediaryName = this.golferForm.get('intermediaryName');
+      const intermediaryNumber = this.golferForm.get('intermediaryNumber');
+
       if (type === 'intermediary') {
-        this.setIntermediaryValidators();
+        intermediaryName?.setValidators([Validators.required]);
+        intermediaryNumber?.setValidators([Validators.required]);
+      } else {
+        intermediaryName?.clearValidators();
+        intermediaryNumber?.clearValidators();
+        intermediaryName?.setValue('');
+        intermediaryNumber?.setValue('');
       }
+      intermediaryName?.updateValueAndValidity();
+      intermediaryNumber?.updateValueAndValidity();
       this.calculateCommission();
     });
-    
-    idTypeControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
-        if (typeControl.value === 'intermediary') {
-            this.setIntermediaryValidators();
-        }
-    });
-  }
-
-  private clearIntermediaryValidators(): void {
-      const controls = ['intermediaryName', 'intermediaryNumber', 'iraNumber', 'corporateRegNumber'];
-      controls.forEach(name => {
-          this.golferForm.get(name)?.clearValidators();
-          this.golferForm.get(name)?.setValue('');
-          this.golferForm.get(name)?.updateValueAndValidity();
-      });
-  }
-
-  private setIntermediaryValidators(): void {
-      this.f.intermediaryName.setValidators([Validators.required]);
-      this.f.intermediaryNumber.setValidators([Validators.required]);
-      if (this.f.intermediaryIdType.value === 'ira') {
-          this.f.iraNumber.setValidators([Validators.required]);
-          this.f.corporateRegNumber.clearValidators();
-          this.f.corporateRegNumber.setValue('');
-      } else {
-          this.f.corporateRegNumber.setValidators([Validators.required]);
-          this.f.iraNumber.clearValidators();
-          this.f.iraNumber.setValue('');
-      }
-      this.f.intermediaryName.updateValueAndValidity();
-      this.f.intermediaryNumber.updateValueAndValidity();
-      this.f.iraNumber.updateValueAndValidity();
-      this.f.corporateRegNumber.updateValueAndValidity();
   }
 
   private calculateCommission(): void {
@@ -211,6 +167,7 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
   private saveQuote(): PendingQuote | null {
     if (this.golferForm.invalid || !this.selectedPlan) {
       this.golferForm.markAllAsTouched();
+      this.snackBar.open('Please fill all required fields correctly.', 'Close', { duration: 3000 });
       return null;
     }
     const newQuote: PendingQuote = {
@@ -220,16 +177,16 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
         status: 'pending',
         quoteDate: new Date().toISOString()
     };
-    const existingQuotes: PendingQuote[] = JSON.parse(localStorage.getItem('pendingQuotes') || '[]');
+    const existingQuotes: PendingQuote[] = JSON.parse(localStorage.getItem('pendingGolfQuotes') || '[]');
     existingQuotes.push(newQuote);
-    localStorage.setItem('pendingQuotes', JSON.stringify(existingQuotes));
+    localStorage.setItem('pendingGolfQuotes', JSON.stringify(existingQuotes));
     return newQuote;
   }
 
   saveForLater(): void {
     const savedQuote = this.saveQuote();
     if (savedQuote) {
-        this.snackBar.open('Your quote has been saved to the dashboard.', 'Close', { duration: 3000 });
+        this.snackBar.open('Your golfers quote has been saved.', 'Close', { duration: 3000 });
         this.router.navigate(['/dashboard']);
     }
   }
@@ -258,11 +215,11 @@ export class GolfersQuoteComponent implements OnInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((result: PaymentResult | null) => {
       if (result?.success) {
-        const allQuotes: PendingQuote[] = JSON.parse(localStorage.getItem('pendingQuotes') || '[]');
+        const allQuotes: PendingQuote[] = JSON.parse(localStorage.getItem('pendingGolfQuotes') || '[]');
         const quoteIndex = allQuotes.findIndex(q => q.id === quote.id);
         if (quoteIndex > -1) {
             allQuotes[quoteIndex].status = 'active';
-            localStorage.setItem('pendingQuotes', JSON.stringify(allQuotes));
+            localStorage.setItem('pendingGolfQuotes', JSON.stringify(allQuotes));
         }
         this.snackBar.open('Payment successful! Your policy is now active.', 'Close', { duration: 5000 });
         this.router.navigate(['/dashboard']);

@@ -20,11 +20,11 @@
   <!-- Main Content -->
   <div class="p-6">
     <div class="mx-auto max-w-7xl">
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <!-- Left Column: Form -->
-        <div class="lg:col-span-2">
-          <div class="animate-fade-in rounded-lg bg-white p-6 shadow-sm">
-            <form [formGroup]="golferForm">
+      <form [formGroup]="golferForm">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <!-- Left Column: Form Details & Plan Selection -->
+          <div class="lg:col-span-2">
+            <div class="rounded-lg bg-white p-6 shadow-sm">
               <h2 class="mb-2 text-2xl font-semibold text-gray-900">Get Your Golfers Insurance Quote</h2>
               <p class="mb-6 text-gray-600">Complete the details and select a cover option below.</p>
               
@@ -44,202 +44,130 @@
               </div>
 
               <!-- Conditional Section for Intermediary Details -->
-              <div *ngIf="f.policyHolderType.value === 'intermediary'" class="mb-6 rounded-md border border-sky-200 bg-sky-50 p-4 animate-fade-in">
+              <div *ngIf="f.policyHolderType.value === 'intermediary'" class="animate-fade-in mb-6 rounded-md border border-sky-200 bg-sky-50 p-4">
                 <h3 class="mb-4 text-lg font-medium text-sky-800">Intermediary Details</h3>
                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                   <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Intermediary Name<span class="text-red-500">*</span></label>
                     <input type="text" formControlName="intermediaryName" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
-                    <div *ngIf="f.intermediaryName.invalid && (f.intermediaryName.dirty || f.intermediaryName.touched)" class="mt-1 text-xs text-red-500"><span>Intermediary name is required.</span></div>
                   </div>
                   <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Intermediary Number<span class="text-red-500">*</span></label>
                     <input type="text" formControlName="intermediaryNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
-                    <div *ngIf="f.intermediaryNumber.invalid && (f.intermediaryNumber.dirty || f.intermediaryNumber.touched)" class="mt-1 text-xs text-red-500"><span>Intermediary number is required.</span></div>
                   </div>
-                </div>
-                <div class="mt-4 pt-4 border-t border-sky-200">
-                    <label class="block text-sm font-medium text-gray-900">Intermediary ID Type</label>
-                    <div class="mt-2 flex gap-6">
-                        <label class="flex items-center">
-                            <input type="radio" formControlName="intermediaryIdType" value="ira" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
-                            <span class="ml-3 text-sm text-gray-700">IRA Number</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" formControlName="intermediaryIdType" value="corporate" class="h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise">
-                            <span class="ml-3 text-sm text-gray-700">Corporate Registration</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <div *ngIf="f.intermediaryIdType.value === 'ira'">
-                        <label class="mb-2 block text-sm font-medium text-gray-700">IRA Number<span class="text-red-500">*</span></label>
-                        <input type="text" formControlName="iraNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
-                        <div *ngIf="f.iraNumber.invalid && (f.iraNumber.dirty || f.iraNumber.touched)" class="mt-1 text-xs text-red-500"><span>IRA Number is required.</span></div>
-                    </div>
-                    <div *ngIf="f.intermediaryIdType.value === 'corporate'">
-                        <label class="mb-2 block text-sm font-medium text-gray-700">Corporate Registration Number<span class="text-red-500">*</span></label>
-                        <input type="text" formControlName="corporateRegNumber" class="w-full rounded-md border-gray-300 bg-white px-3 py-2"/>
-                        <div *ngIf="f.corporateRegNumber.invalid && (f.corporateRegNumber.dirty || f.corporateRegNumber.touched)" class="mt-1 text-xs text-red-500"><span>Corporate Registration Number is required.</span></div>
-                    </div>
                 </div>
               </div>
 
               <!-- Personal Details -->
-              <h3 class="mb-4 text-lg font-medium text-gray-800 border-t border-gray-200 pt-6">Policy Holder's Personal Details</h3>
+              <h3 class="mb-4 border-t border-gray-200 pt-6 text-lg font-medium text-gray-800">Policy Holder's Personal Details</h3>
               <div class="mb-6 grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Full Name<span class="text-red-500">*</span></label>
                   <input type="text" formControlName="fullName" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
-                  <div *ngIf="f.fullName.invalid && (f.fullName.dirty || f.fullName.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.fullName.errors?.['required']">Full name is required.</span>
-                    <span *ngIf="f.fullName.errors?.['minlength']">Full name must be at least 3 characters.</span>
-                  </div>
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Date of Birth<span class="text-red-500">*</span></label>
-                  <input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="dd/mm/yyyy" />
-                  <div *ngIf="f.dob.invalid && (f.dob.dirty || f.dob.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.dob.errors?.['required']">Date of birth is required.</span>
-                    <span *ngIf="f.dob.errors?.['futureDate']">Date of birth cannot be in the future.</span>
-                  </div>
+                  <input type="date" formControlName="dob" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" />
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Email Address<span class="text-red-500">*</span></label>
                   <input type="email" formControlName="email" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
-                   <div *ngIf="f.email.invalid && (f.email.dirty || f.email.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.email.errors?.['required']">Email is required.</span>
-                    <span *ngIf="f.email.errors?.['email']">Please enter a valid email address.</span>
-                  </div>
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Phone Number<span class="text-red-500">*</span></label>
                   <input type="tel" formControlName="phoneNumber" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="0712345678"/>
-                   <div *ngIf="f.phoneNumber.invalid && (f.phoneNumber.dirty || f.phoneNumber.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.phoneNumber.errors?.['required']">Phone number is required.</span>
-                    <span *ngIf="f.phoneNumber.errors?.['pattern']">Enter a valid Kenyan number (e.g., 0712345678).</span>
-                  </div>
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN No.</label>
-                  <input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2" placeholder="A123456789M"/>
-                   <div *ngIf="f.kraPin.invalid && (f.kraPin.dirty || f.kraPin.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.kraPin.errors?.['pattern']">Enter a valid KRA PIN format.</span>
-                  </div>
+                  <input type="text" formControlName="kraPin" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
                 </div>
                 <div>
                   <label class="mb-2 block text-sm font-medium text-gray-700">Golf Club<span class="text-red-500">*</span></label>
                   <input type="text" formControlName="golfClub" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"/>
-                   <div *ngIf="f.golfClub.invalid && (f.golfClub.dirty || f.golfClub.touched)" class="mt-1 text-xs text-red-500">
-                    <span *ngIf="f.golfClub.errors?.['required']">Golf club is required.</span>
-                  </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Cover Selection Table -->
-              <h3 class="mb-4 text-lg font-medium text-gray-800 border-t border-gray-200 pt-6">Cover Selection</h3>
-              <div class="table-container-responsive">
-                <table class="cover-table">
-                  <thead>
-                    <tr>
-                      <th class="risk-header">RISK INSURED</th>
-                      <th *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
-                        {{ plan.name }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let benefitName of benefitRows">
-                      <td>{{ benefitName }}</td>
-                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
-                        KES {{ getBenefitLimit(plan.id, benefitName) | number:'1.0-0' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr class="premium-row">
-                      <td>PREMIUM</td>
-                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
-                        KES {{ plan.premium | number:'1.0-0' }}
-                      </td>
-                    </tr>
-                    <tr class="select-row">
-                      <td></td>
-                      <td *ngFor="let plan of coverOptions" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+            <!-- Cover Selection Cards -->
+            <div class="mt-8">
+                <h3 class="mb-4 text-xl font-semibold text-gray-800">Select a Plan</h3>
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    <div *ngFor="let plan of coverOptions" class="plan-card" [ngClass]="{'selected-plan': f.coverOption.value === plan.id}">
+                        <div class="plan-header">
+                            <mat-icon class="plan-icon">golf_course</mat-icon>
+                            <h4 class="plan-name">{{ plan.name }}</h4>
+                        </div>
+                        <div class="plan-price">
+                            <span class="price-amount">KES {{ plan.premium | number:'1.0-0' }}</span>
+                            <div class="price-period">per year</div>
+                        </div>
+                        <ul class="plan-benefits">
+                            <li *ngFor="let benefit of plan.benefits" class="benefit-item">
+                                <mat-icon class="benefit-icon included">check_circle</mat-icon>
+                                <div class="benefit-text">
+                                    <div class="benefit-name">{{ benefit.name }}</div>
+                                    <div class="benefit-limit">KES {{ benefit.limit | number:'1.0-0' }}</div>
+                                </div>
+                            </li>
+                        </ul>
                         <label>
-                          <input type="radio" formControlName="coverOption" [value]="plan.id" class="sr-only"/>
-                          <span class="select-button">Select Plan</span>
+                            <input type="radio" formControlName="coverOption" [value]="plan.id" class="sr-only"/>
+                            <span class="select-button">Select {{ plan.name }}</span>
                         </label>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-              
-               <!-- Terms & Conditions -->
-              <div class="mt-6 space-y-4 border-t border-gray-200 pt-6">
-                  <label class="flex items-start">
-                    <input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/>
-                    <span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a>.*</span>
-                  </label>
-                  <div *ngIf="f.termsAndConditions.invalid && (f.termsAndConditions.dirty || f.termsAndConditions.touched)" class="ml-7 text-xs text-red-500">
-                      You must accept the terms and conditions.
-                  </div>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Right Column: Premium Summary -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
-            <h3 class="mb-4 text-lg font-semibold text-gray-900">Summary & Benefits</h3>
-            <ng-container *ngIf="selectedPlan">
-              <div class="rounded-lg bg-fidelity-turquoise/10 p-4">
-                <div class="mb-4 border-b border-fidelity-turquoise/20 pb-4">
-                  <p class="text-sm text-gray-600">You have selected</p>
-                  <p class="text-xl font-bold text-fidelity-turquoise">{{ selectedPlan.name }}</p>
-                </div>
-                
-                <h4 class="mb-2 font-semibold text-gray-800">Cover Options:</h4>
-                <table class="benefit-table">
-                  <tbody>
-                    <tr *ngFor="let benefit of selectedPlan.benefits">
-                      <td class="text-gray-600">{{ benefit.name }}</td>
-                      <td>KES {{ benefit.limit | number:'1.0-0' }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                
-                <div *ngIf="commissionAmount" class="mt-4 pt-4 border-t border-fidelity-turquoise/20 text-sm">
-                    <div class="flex justify-between items-center text-green-700">
-                        <span class="font-medium">Your Commission (10%)</span>
-                        <span class="font-bold">KES {{ commissionAmount | number:'1.2-2' }}</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-4 border-t border-fidelity-turquoise/20 pt-4 flex justify-between items-center text-xl font-bold text-fidelity-turquoise">
-                  <span>Total Premium</span>
-                  <span>KES {{ selectedPlan.premium | number:'1.0-0' }}</span>
+            <!-- Terms & Conditions -->
+            <div class="mt-8 rounded-lg bg-white p-6 shadow-sm">
+                <label class="flex items-start">
+                  <input type="checkbox" formControlName="termsAndConditions" class="mt-1 h-4 w-4 text-fidelity-turquoise focus:ring-fidelity-turquoise"/>
+                  <span class="ml-3 text-sm">I agree to the <a href="/terms" target="_blank" class="font-medium text-fidelity-turquoise hover:underline">Terms & Conditions</a> and confirm all the information provided is accurate.*</span>
+                </label>
+            </div>
+          </div>
+
+          <!-- Right Column: Premium Summary -->
+          <div class="lg:col-span-1">
+            <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
+              <h3 class="mb-4 text-lg font-semibold text-gray-900">Quote Summary</h3>
+              <ng-container *ngIf="selectedPlan">
+                <div class="animate-fade-in rounded-lg bg-fidelity-turquoise/10 p-4">
+                  <div class="mb-4 border-b border-fidelity-turquoise/20 pb-4">
+                    <p class="text-sm text-gray-600">You have selected</p>
+                    <p class="text-xl font-bold text-fidelity-turquoise">{{ selectedPlan.name }}</p>
+                  </div>
+                  
+                  <div *ngIf="commissionAmount" class="mt-4 text-sm">
+                      <div class="flex justify-between items-center text-green-700">
+                          <span class="font-medium">Your Commission (10%)</span>
+                          <span class="font-bold">KES {{ commissionAmount | number:'1.2-2' }}</span>
+                      </div>
+                  </div>
+
+                  <div class="mt-4 border-t border-fidelity-turquoise/20 pt-4 flex justify-between items-center text-xl font-bold text-fidelity-turquoise">
+                    <span>Total Premium</span>
+                    <span>KES {{ selectedPlan.premium | number:'1.0-0' }}</span>
+                  </div>
                 </div>
-              </div>
-              
-              <div class="mt-6 space-y-3">
-                  <button (click)="handlePayment()" [disabled]="golferForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">
-                      Save & Proceed to Payment
-                  </button>
-                  <button (click)="saveForLater()" [disabled]="golferForm.invalid" class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                      Save for Later
-                  </button>
-              </div>
-            </ng-container>
+                
+                <div class="mt-6 space-y-3">
+                    <button (click)="handlePayment()" [disabled]="golferForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">
+                        Save & Proceed to Payment
+                    </button>
+                    <button (click)="saveForLater()" [disabled]="golferForm.invalid" class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                        Save for Later
+                    </button>
+                </div>
+              </ng-container>
 
-            <div *ngIf="!selectedPlan" class="rounded-lg bg-gray-50 p-4">
-              <p class="text-center text-gray-500">Please select a cover option to see the summary.</p>
+              <div *ngIf="!selectedPlan" class="rounded-lg bg-gray-50 p-6 text-center text-gray-500">
+                <p>Please select a cover option to see the summary.</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </div>
