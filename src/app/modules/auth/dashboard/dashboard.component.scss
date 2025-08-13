@@ -41,6 +41,10 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
 /* NEW: Style for child icons in the "New Quote" dropdown */
 .nav-menu-item + div a .sidebar-nav-icon {
   color: $fidelity-lime !important;
+  opacity: 0.9;
+}
+.nav-menu-item + div a:hover .sidebar-nav-icon {
+  opacity: 1;
 }
 
 .stats-card {
