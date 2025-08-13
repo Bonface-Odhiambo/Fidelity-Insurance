@@ -24,7 +24,7 @@
         <div class="mx-auto max-w-7xl">
             <!-- Progress Steps -->
             <div class="mb-8">
-                <div class="flex items-center">
+                 <div class="flex items-center">
                     <div class="flex items-center" [class.text-fidelity-turquoise]="currentStep >= 1" [class.text-gray-500]="currentStep < 1">
                         <div class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium" [class.bg-fidelity-turquoise]="currentStep >= 1" [class.text-white]="currentStep >= 1" [class.bg-gray-300]="currentStep < 1">1</div>
                         <span class="ml-2 text-sm font-medium">Quote & Select Plan</span>
@@ -45,7 +45,7 @@
             <!-- Content Container -->
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <!-- Left Column: Forms -->
-                <div class="lg:col-span-2">
+                <div [ngClass]="{'lg:col-span-3': currentStep === 1, 'lg:col-span-2': currentStep > 1}">
                     <!-- Step 1: Quote Form & Plan Selection -->
                     <div *ngIf="currentStep === 1" class="step-content">
                         <form [formGroup]="quoteForm">
@@ -60,18 +60,16 @@
                                             <option value="student">Student Travel</option>
                                         </select>
                                     </div>
-                                    <div *ngIf="qf.policyType.value === 'standard'">
+                                    <div>
                                         <label class="mb-2 block text-sm font-medium text-gray-700">Cover Period<span class="text-red-500">*</span></label>
                                         <select formControlName="duration" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2">
                                             <option value="" disabled>Select duration</option>
-                                            <option *ngFor="let d of standardDurations" [value]="d.value">{{ d.label }}</option>
-                                        </select>
-                                    </div>
-                                    <div *ngIf="qf.policyType.value === 'student'">
-                                        <label class="mb-2 block text-sm font-medium text-gray-700">Cover Period<span class="text-red-500">*</span></label>
-                                        <select formControlName="duration" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2">
-                                            <option value="" disabled>Select period</option>
-                                            <option *ngFor="let d of studentDurations" [value]="d.value">{{ d.label }}</option>
+                                            <ng-container *ngIf="qf.policyType.value === 'standard'">
+                                                <option *ngFor="let d of standardDurations" [value]="d.value">{{ d.label }}</option>
+                                            </ng-container>
+                                            <ng-container *ngIf="qf.policyType.value === 'student'">
+                                                <option *ngFor="let d of studentDurations" [value]="d.value">{{ d.label }}</option>
+                                            </ng-container>
                                         </select>
                                     </div>
                                 </div>
@@ -79,49 +77,47 @@
     
                             <div *ngIf="qf.duration.value" class="mt-8">
                                 <h3 class="mb-4 text-xl font-semibold text-gray-800">Select a Plan</h3>
-                                <div class="table-container-responsive">
-                                    <table class="cover-table">
-                                        <thead>
-                                            <tr>
-                                                <th class="benefit-header">BENEFIT</th>
-                                                <th *ngFor="let plan of displayedPlans" [ngClass]="{'selected-plan': qf.plan.value === plan.id}">
-                                                    <div class="plan-name">{{ plan.name }}</div>
-                                                    <div class="plan-description">{{ plan.description }}</div>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody *ngFor="let category of benefitCategories">
-                                            <tr class="category-row">
-                                                <td [attr.colspan]="displayedPlans.length + 1">{{ category.name }}</td>
-                                            </tr>
-                                            <tr *ngFor="let benefitName of category.benefits">
-                                                <td>{{ benefitName }}</td>
-                                                <td *ngFor="let plan of displayedPlans" [ngClass]="{'selected-plan': qf.plan.value === plan.id}">
-                                                    {{ getBenefitLimit(plan.id, benefitName) }}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr class="premium-row">
-                                                <td>PREMIUM</td>
-                                                <td *ngFor="let plan of displayedPlans" [ngClass]="{'selected-plan': qf.plan.value === plan.id}">
-                                                  KES {{ getPlanPremium(plan.id) | number:'1.0-0' }}
-                                                </td>
-                                            </tr>
-                                            <tr class="select-row">
-                                                <td></td>
-                                                <td *ngFor="let plan of displayedPlans" [ngClass]="{'selected-plan': qf.plan.value === plan.id}">
-                                                    <label>
-                                                        <input type="radio" formControlName="plan" [value]="plan.id" class="sr-only"/>
-                                                        <span class="select-button">Select Plan</span>
-                                                    </label>
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                                <!-- RESPONSIVE GRID LAYOUT -->
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+                                    <div *ngFor="let plan of displayedPlans" class="plan-card" [ngClass]="{'selected-plan': qf.plan.value === plan.id}">
+                                        <div *ngIf="plan.isMostPopular" class="most-popular-badge">Most Popular</div>
+                                        <div class="plan-header">
+                                            <mat-icon class="plan-icon">public</mat-icon>
+                                            <h4 class="plan-name">{{ plan.name }}</h4>
+                                            <p class="plan-description">{{ plan.description }}</p>
+                                        </div>
+                                        <div class="plan-price">
+                                            <span class="price-amount">${{ plan.priceUSD | number:'1.0-0' }}</span>
+                                            <div class="price-period">per trip</div>
+                                        </div>
+                                        <div class="plan-tags">
+                                            <span *ngFor="let tag of plan.tags" class="plan-tag">{{ tag }}</span>
+                                        </div>
+                                        <ul class="plan-benefits">
+                                            <li *ngFor="let benefit of plan.benefits" class="benefit-item">
+                                                <mat-icon class="benefit-icon" [ngClass]="{'included': benefit.included, 'not-included': !benefit.included}">
+                                                    {{ benefit.included ? 'check_circle' : 'radio_button_unchecked' }}
+                                                </mat-icon>
+                                                <div class="benefit-text">
+                                                    <div class="benefit-name">{{ benefit.name }}</div>
+                                                    <div *ngIf="benefit.limit" class="benefit-limit">{{ benefit.limit }}</div>
+                                                    <div *ngIf="benefit.notes" class="benefit-notes">{{ benefit.notes }}</div>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                        <label>
+                                            <input type="radio" formControlName="plan" [value]="plan.id" class="sr-only"/>
+                                            <span class="select-button">Select Plan</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </form>
+
+                        <!-- Next Button for Step 1 -->
+                        <div class="mt-8 flex justify-end">
+                            <button (click)="nextStep()" [disabled]="quoteForm.invalid" class="btn-primary rounded-md px-8 py-3 font-medium">Next</button>
+                        </div>
                     </div>
 
                     <!-- Step 2: Traveler Details -->
@@ -183,21 +179,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr *ngFor="let benefit of selectedPlanDetails.benefits">
-                                        <td>{{ benefit.name }}</td>
-                                        <td>{{ benefit.limit }}</td>
-                                    </tr>
+                                    <ng-container *ngFor="let benefit of selectedPlanDetails.benefits">
+                                        <tr *ngIf="benefit.included">
+                                            <td>{{ benefit.name }}</td>
+                                            <td>{{ benefit.limit || 'Included' }}</td>
+                                        </tr>
+                                    </ng-container>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Premium Summary & Navigation -->
-                <div class="lg:col-span-1">
+                <!-- Right Column: Premium Summary & Navigation (HIDDEN in Step 1) -->
+                <div *ngIf="currentStep > 1" class="lg:col-span-1">
                     <div class="sticky top-24 rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="mb-4 text-lg font-semibold text-gray-900">Premium Summary</h3>
-                        <div *ngIf="currentStep > 1; else prompt" class="bg-fidelity-turquoise/10 space-y-3 rounded-lg p-4 text-sm">
+                        <div class="bg-fidelity-turquoise/10 space-y-3 rounded-lg p-4 text-sm">
                             <div class="flex justify-between font-semibold">
                                 <span>Subtotal (USD)</span><span>$ {{ premium.subtotalUSD | number: '1.2-2' }}</span>
                             </div>
@@ -205,7 +203,7 @@
                                 <span>Group Discount ({{ premium.groupDiscountPercentage }}%)</span>
                                 <span>- $ {{ premium.groupDiscountUSD | number: '1.2-2' }}</span>
                             </div>
-                            <div *ngIf="premium.ageSurchargeUSD != 0" class="flex justify-between" [ngClass]="{ 'text-red-500': premium.ageSurchargeUSD > 0, 'text-green-600': premium.ageSurchargeUSD < 0 }">
+                            <div *ngIf="premium.ageSurchargeUSD !== 0" class="flex justify-between" [ngClass]="{ 'text-red-500': premium.ageSurchargeUSD > 0, 'text-green-600': premium.ageSurchargeUSD < 0 }">
                                 <span>Age Adjustment ({{ premium.ageAdjustmentPercentage }}%)</span>
                                 <span>{{ premium.ageSurchargeUSD > 0 ? '+' : '-' }} $ {{ abs(premium.ageSurchargeUSD) | number: '1.2-2' }}</span>
                             </div>
@@ -218,17 +216,13 @@
                                 <span>Total Payable</span><span>KES {{ premium.totalPayableKES | number: '1.2-2' }}</span>
                             </div>
                         </div>
-                        <ng-template #prompt>
-                            <div class="text-center text-gray-500">Select a policy type and cover period to see available plans.</div>
-                        </ng-template>
                         
                         <div class="mt-6">
-                            <button *ngIf="currentStep === 1" (click)="nextStep()" [disabled]="quoteForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Next</button>
-                            <button *ngIf="currentStep === 2" (click)="nextStep()" [disabled]="travelerDetailsForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Review Your Quote</button>
+                            <button *ngIf="currentStep === 2" (click)="nextStep()" [disabled]="travelerDetailsForm.invalid" class="btn-primary w-full rounded-md px-4 py-3 font-medium">Review & Save Quote</button>
                             <div *ngIf="currentStep === 3" class="mt-4 flex flex-col gap-4">
                                 <button (click)="handlePayment()" class="btn-primary rounded-md px-6 py-2 font-medium">Proceed to Payment</button>
                             </div>
-                             <button *ngIf="currentStep > 1" (click)="prevStep()" class="hover:text-fidelity-turquoise mt-2 w-full text-center text-sm font-medium text-gray-600">Back</button>
+                             <button (click)="prevStep()" class="hover:text-fidelity-turquoise mt-2 w-full text-center text-sm font-medium text-gray-600">Back</button>
                         </div>
                     </div>
                 </div>

@@ -1,79 +1,55 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { TravelQuote, InsurancePlan, PlanBenefit } from './travel-quote.models';
+
+export interface SavedQuote {
+  id: string;
+  status: 'pending' | 'completed';
+  date: string;
+  planDetails: any;
+  travelerDetails: any;
+  premiumSummary: any;
+}
+
+const QUOTES_STORAGE_KEY = 'fidelity_pending_quotes';
 
 @Injectable({
   providedIn: 'root'
 })
-export class TravelQuoteService {
-  private quoteSubject = new BehaviorSubject<TravelQuote | null>(null);
-  public quote$ = this.quoteSubject.asObservable();
+export class TravelQuoteService { // Renamed from QuoteService
 
-  private currentStepSubject = new BehaviorSubject<number>(1);
-  public currentStep$ = this.currentStepSubject.asObservable();
+  constructor() { }
 
-  updateQuote(quote: Partial<TravelQuote>): void {
-    const currentQuote = this.quoteSubject.value;
-    const updatedQuote = { ...currentQuote, ...quote } as TravelQuote;
-    this.quoteSubject.next(updatedQuote);
-  }
-
-  setCurrentStep(step: number): void {
-    this.currentStepSubject.next(step);
-  }
-
-  getCurrentStep(): number {
-    return this.currentStepSubject.value;
-  }
-
-  getInsurancePlans(): InsurancePlan[] {
-    const benefits: PlanBenefit[] = [
-      { name: 'Personal Accident', goldPlan: 25000, premiumOutbound: 25000 },
-      { name: 'Emergency Medical Expenses & Evacuation', goldPlan: 200000, premiumOutbound: 100000 },
-      { name: 'Repatriation of Mortal Remains', goldPlan: 12500, premiumOutbound: 10000 },
-      { name: 'Emergency Dental Care', goldPlan: 750, premiumOutbound: 600 },
-      { name: 'Hospital Benefits', goldPlan: '25 Accumulation 250', premiumOutbound: '10 Accumulation 100' },
-      { name: 'Delayed Baggage', goldPlan: '$50 per 12 hrs upto max $ 400', premiumOutbound: '$50 per 12 hrs upto max $ 250' },
-      { name: 'Loss of Checked Baggage & Personal Effects', goldPlan: 1000, premiumOutbound: 1000 },
-      { name: 'Personal Liability', goldPlan: 150000, premiumOutbound: 150000 },
-      { name: 'Hijack', goldPlan: '$100 per 24 hrs upto max $ 7,500', premiumOutbound: '$100 per 24 hrs upto max $ 5,000' },
-      { name: 'Loss of passport', goldPlan: 150, premiumOutbound: 150 },
-      { name: 'Cancellation and Curtailment', goldPlan: 1500, premiumOutbound: 1500 },
-      { name: 'Travel Delay', goldPlan: '$50 per 12 hrs upto max $ 200', premiumOutbound: '$50 per 12 hrs upto max $ 200' },
-      { name: 'War, Political Violence and Terrorism', goldPlan: 'Covered at an extra premium of 25 percent of the Basic premiums', premiumOutbound: 'Covered at an extra premium of 25 percent of the Basic premiums' },
-      { name: 'Covid Extension', goldPlan: 'Covered at an extra premium of 20 percent of the Basic premiums', premiumOutbound: 'Covered at an extra premium of 20 percent of the Basic premiums' }
-    ];
-
-    return [
-      {
-        name: 'Gold Plan',
-        benefits,
-        totalPremium: 27.00,
-        currency: 'USD',
-        addOns: [
-          { name: 'Include War and Terrorism Premium', selected: false },
-          { name: 'Include Covid Extension Premium', selected: false }
-        ]
-      },
-      {
-        name: 'Premium Outbound',
-        benefits,
-        totalPremium: 23.00,
-        currency: 'USD',
-        addOns: [
-          { name: 'Include War and Terrorism Premium', selected: false },
-          { name: 'Include Covid Extension Premium', selected: false }
-        ]
+  /**
+   * Retrieves all saved quotes from local storage.
+   * @returns An array of SavedQuote objects.
+   */
+  getPendingQuotes(): SavedQuote[] {
+    const quotesJson = localStorage.getItem(QUOTES_STORAGE_KEY);
+    if (quotesJson) {
+      try {
+        return JSON.parse(quotesJson) as SavedQuote[];
+      } catch (e) {
+        console.error('Error parsing quotes from local storage', e);
+        return [];
       }
-    ];
+    }
+    return [];
   }
 
-  calculateNumberOfDays(departure: Date, returnDate: Date): number {
-    const diffTime = Math.abs(returnDate.getTime() - departure.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
+  /**
+   * Saves a new quote to local storage.
+   * @param quote The quote data to save.
+   */
+  saveQuote(quote: Omit<SavedQuote, 'id' | 'date' | 'status'>): void {
+    const allQuotes = this.getPendingQuotes();
+    
+    const newQuote: SavedQuote = {
+      ...quote,
+      id: `FID-Q-${Date.now()}`,
+      status: 'pending',
+      date: new Date().toISOString(),
+    };
 
-  generateQuoteNumber(): string {
-    return 'QU000197202506';
+    allQuotes.push(newQuote);
+    localStorage.setItem(QUOTES_STORAGE_KEY, JSON.stringify(allQuotes));
   }
 }

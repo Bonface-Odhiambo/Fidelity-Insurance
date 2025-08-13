@@ -1,17 +1,33 @@
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { Subject, take, takeUntil } from 'rxjs';
-import { MpesaPaymentModalComponent, PaymentResult } from '../shared/payment-modal.component';
-import { AuthService } from 'app/core/auth/auth.service'; // Assuming AuthService exists
+import { Subject, take, takeUntil, debounceTime } from 'rxjs';
+import { MpesaPaymentModalComponent, PaymentResult } from '../../auth/shared/payment-modal.component';
+import { AuthService } from 'app/core/auth/auth.service';
+import { TravelQuoteService } from './travel-quote.service';
 
 // --- Data Structures ---
-interface TravelPlan { id: string; name: string; description: string; benefits: Benefit[]; type: 'standard' | 'student'; keyBenefits?: string[]; }
-interface Benefit { name: string; limit: string; }
-interface BenefitCategory { name: string; benefits: string[]; }
+interface BenefitDetail {
+  name: string;
+  included: boolean;
+  limit?: string;
+  notes?: string;
+}
+
+interface TravelPlan {
+  id: string;
+  name: string;
+  description: string;
+  type: 'standard' | 'student';
+  priceUSD?: number;
+  tags: string[];
+  isMostPopular?: boolean;
+  benefits: BenefitDetail[];
+}
+
 interface Premium {
   baseRateUSD: number; subtotalUSD: number; groupDiscountUSD: number; ageSurchargeUSD: number; winterSportsSurchargeUSD: number;
   totalPayableUSD: number; totalPayableKES: number; groupDiscountPercentage: number; ageAdjustmentPercentage: number;
@@ -20,7 +36,7 @@ interface Premium {
 @Component({
   selector: 'app-travel-quote',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule, DatePipe ],
+  imports: [ CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule, DatePipe, DecimalPipe ],
   templateUrl: './travel-quote.component.html',
   styleUrls: ['./travel-quote.component.scss'],
 })
@@ -34,26 +50,34 @@ export class TravelQuoteComponent implements OnInit, OnDestroy {
   displayedPlans: TravelPlan[] = [];
   
   readonly standardDurations = [ {value: '4', label: 'Up to 4 days'}, {value: '7', label: 'Up to 7 days'}, {value: '10', label: 'Up to 10 days'}, {value: '15', label: 'Up to 15 days'}, {value: '21', label: 'Up to 21 days'}, {value: '31', label: 'Up to 31 days'}, {value: '62', label: 'Up to 62 days'}, {value: '92', label: 'Up to 92 days'}, {value: '180', label: 'Up to 180 days'}, {value: '365', label: '1 year multi-trip'} ];
-  readonly studentDurations = [ {value: '180', label: '6 months'}, {value: '270', label: '9 months'}, {value: '365', label: '1 year'} ];
+  readonly studentDurations = [ {value: '180', label: '6 months (180 days)'}, {value: '270', label: '9 months (270 days)'}, {value: '365', label: '1 year (365 days)'} ];
   
   private unsubscribe$ = new Subject<void>();
   private readonly USD_TO_KES_RATE = 130.00;
 
-  private standardRates: { [duration: string]: { [plan: string]: number } } = { '4': { 'AFRICA_ASIA': 9, 'EUROPE': 11, 'WW_BASIC': 15, 'WW_PLUS': 27, 'WW_EXTRA': 34 }, '7': { 'AFRICA_ASIA': 12, 'EUROPE': 15, 'WW_BASIC': 20, 'WW_PLUS': 36, 'WW_EXTRA': 43 }, '10': { 'AFRICA_ASIA': 17, 'EUROPE': 22, 'WW_BASIC': 28, 'WW_PLUS': 51, 'WW_EXTRA': 62 }, '15': { 'AFRICA_ASIA': 18, 'EUROPE': 25, 'WW_BASIC': 30, 'WW_PLUS': 55, 'WW_EXTRA': 67 }, '21': { 'AFRICA_ASIA': 20, 'EUROPE': 28, 'WW_BASIC': 32, 'WW_PLUS': 58, 'WW_EXTRA': 72 }, '31': { 'AFRICA_ASIA': 32, 'EUROPE': 38, 'WW_BASIC': 48, 'WW_PLUS': 90, 'WW_EXTRA': 111 }, '62': { 'AFRICA_ASIA': 50, 'EUROPE': 57, 'WW_BASIC': 70, 'WW_PLUS': 138, 'WW_EXTRA': 165 }, '92': { 'AFRICA_ASIA': 59, 'EUROPE': 74, 'WW_BASIC': 98, 'WW_PLUS': 179, 'WW_EXTRA': 202 }, '180': { 'AFRICA_ASIA': 70, 'EUROPE': 80, 'WW_BASIC': 106, 'WW_PLUS': 193, 'WW_EXTRA': 240 }, '365': { 'AFRICA_ASIA': 82, 'EUROPE': 103, 'WW_BASIC': 136, 'WW_PLUS': 248, 'WW_EXTRA': 295 }, };
-  private studentRates: { [duration: string]: { [plan: string]: number } } = { '180': { 'STUDENT_CLASSIC': 361, 'STUDENT_PREMIUM': 496 }, '270': { 'STUDENT_CLASSIC': 470, 'STUDENT_PREMIUM': 626 }, '365': { 'STUDENT_CLASSIC': 602, 'STUDENT_PREMIUM': 715 }, };
+  private standardRates: { [duration: string]: { [planId: string]: number } } = { '4': {'AFRICA_ASIA': 85, 'EUROPE': 36, 'WW_BASIC': 140, 'WW_PLUS': 175, 'WW_EXTRA': 160}, /* ... other dynamic rates if needed ... */ };
+  private studentRates: { [duration: string]: { [planId: string]: number } } = { '180': { 'STUDENT_CLASSIC': 361, 'STUDENT_PREMIUM': 496 }, '270': { 'STUDENT_CLASSIC': 470, 'STUDENT_PREMIUM': 626 }, '365': { 'STUDENT_CLASSIC': 602, 'STUDENT_PREMIUM': 715 }, };
   
-  benefitCategories: BenefitCategory[] = [ { name: 'Medical & Emergency Assistance', benefits: ['Medical expenses & hospitalization abroad', 'Emergency medical evacuation' ]}, { name: 'Personal Accident / Liability', benefits: ['Personal Civil Liability', 'Accidental Death' ]}, { name: 'Cancellation & Delays', benefits: ['Journey Cancellation', 'Delayed Departure' ]} ];
-  private allPlanBenefits: { [key: string]: { [key: string]: string } } = {
-    'AFRICA_ASIA': { 'Medical expenses & hospitalization abroad': '$15,000', 'Emergency medical evacuation': '$15,000' },
-    'EUROPE': { 'Medical expenses & hospitalization abroad': '€36,000', 'Emergency medical evacuation': '€36,000', 'Delayed Departure': '€300' },
-    'WW_BASIC': { 'Medical expenses & hospitalization abroad': '$40,000', 'Personal Civil Liability': '$100,000', 'Journey Cancellation': '$2,000' },
-    'WW_PLUS': { 'Medical expenses & hospitalization abroad': '$75,000', 'Personal Civil Liability': '$150,000' },
-    'WW_EXTRA': { 'Medical expenses & hospitalization abroad': '$150,000', 'Accidental Death': '$50,000' },
-    'STUDENT_CLASSIC': { 'Medical expenses & hospitalization abroad': '60,000', 'Emergency medical evacuation': '30,000', 'Personal Civil Liability': '50,000' },
-    'STUDENT_PREMIUM': { 'Medical expenses & hospitalization abroad': '100,000', 'Emergency medical evacuation': '50,000', 'Personal Civil Liability': '50,000' },
-  };
-  
-  constructor(private fb: FormBuilder, private router: Router, private dialog: MatDialog, private authService: AuthService) {
+  constructor(
+    private fb: FormBuilder, 
+    private router: Router, 
+    private dialog: MatDialog, 
+    private authService: AuthService,
+    private travelQuoteService: TravelQuoteService
+  ) {
+    // Note: The prices in the first image ($85, $36 etc) don't match the dynamic rate table in the second.
+    // I am prioritizing the prices from the first image as requested by the UI design.
+    // The rate table is still used for Student plans.
+    this.standardRates = {
+        'default': {
+            'AFRICA_ASIA': 85.00,
+            'EUROPE': 36.00,
+            'WW_BASIC': 140.00,
+            'WW_PLUS': 175.00,
+            'WW_EXTRA': 160.00
+        }
+    };
+
     this.quoteForm = this.fb.group({
       policyType: ['standard', Validators.required],
       duration: ['', Validators.required],
@@ -75,69 +99,75 @@ export class TravelQuoteComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializePlans();
     this.updateDisplayedPlans(this.qf.policyType.value);
-
-    // Specific listener ONLY for policyType changes
-    this.qf.policyType.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(type => {
-        this.updateDisplayedPlans(type);
+    
+    this.quoteForm.valueChanges.pipe(takeUntil(this.unsubscribe$), debounceTime(50)).subscribe(values => {
+      this.updateDisplayedPlans(values.policyType);
+      this.updatePlanPrices(values.policyType, values.duration);
     });
     
-    // Listener for traveler details to recalculate premium in later steps
-    this.travelerDetailsForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
-        if (this.currentStep > 1) {
-            this.calculatePremium();
-        }
+    this.travelerDetailsForm.valueChanges.pipe(takeUntil(this.unsubscribe$), debounceTime(300)).subscribe(() => {
+        if (this.currentStep > 1) this.calculatePremium();
     });
   }
 
   ngOnDestroy(): void { this.unsubscribe$.next(); this.unsubscribe$.complete(); }
   
   updateDisplayedPlans(type: 'standard' | 'student'): void {
+    const currentType = this.displayedPlans[0]?.type;
+    if (currentType === type) return;
+
     this.displayedPlans = this.allTravelPlans.filter(p => p.type === type);
-    // When policy type changes, reset the duration and plan selections
-    // This is the correct place for this logic
-    this.qf.duration.setValue('');
-    this.qf.plan.setValue('');
+    // Reset duration and plan selection only when type actually changes
+    if (this.qf.policyType.value !== currentType) {
+        this.qf.duration.setValue('', { emitEvent: false });
+        this.qf.plan.setValue('', { emitEvent: false });
+    }
   }
 
-  getPlanPremium(planId: string): number {
-    const { duration } = this.quoteForm.value;
-    if (!duration) return 0;
+  updatePlanPrices(type: 'standard' | 'student', duration: string): void {
+    if (!duration) {
+      this.displayedPlans.forEach(plan => plan.priceUSD = 0);
+      return;
+    };
     
-    const isStudent = this.qf.policyType.value === 'student';
-    const rateTable = isStudent ? this.studentRates : this.standardRates;
-    const baseRateUSD = rateTable[duration]?.[planId] || 0;
-    
-    return baseRateUSD * this.USD_TO_KES_RATE;
-  }
+    const rateTable = (type === 'student') ? this.studentRates : this.standardRates;
+    const durationKey = (type === 'student') ? duration : 'default';
 
-  getBenefitLimit(planId: string, benefitName: string): string {
-    return this.allPlanBenefits[planId]?.[benefitName] || 'N/A';
+    this.displayedPlans.forEach(plan => {
+        plan.priceUSD = rateTable[durationKey]?.[plan.id] || 0;
+    });
   }
   
   calculatePremium(): void {
-    if (this.quoteForm.invalid || this.travelerDetailsForm.invalid) {
+    this.selectedPlanDetails = this.allTravelPlans.find(p => p.id === this.qf.plan.value) || null;
+    if (this.quoteForm.invalid || this.travelerDetailsForm.invalid || !this.selectedPlanDetails) {
       this.premium = this.resetPremium(); return;
     }
 
-    const trip = this.quoteForm.value;
     const traveler = this.travelerDetailsForm.value;
-    
-    const rateTable = trip.policyType === 'student' ? this.studentRates : this.standardRates;
-    const baseRateUSD = rateTable[trip.duration]?.[trip.plan] || 0;
-    
+    const baseRateUSD = this.selectedPlanDetails.priceUSD || 0;
     let subtotalUSD = baseRateUSD * traveler.numTravelers;
-
+    
     let groupDiscountPercentage = 0;
-    if (traveler.numTravelers >= 10) groupDiscountPercentage = 5;
-    if (traveler.numTravelers >= 21) groupDiscountPercentage = 10;
+    const num = traveler.numTravelers;
+    if (num >= 10 && num <= 20) groupDiscountPercentage = 5;
+    else if (num >= 21 && num <= 50) groupDiscountPercentage = 10;
+    else if (num >= 51 && num <= 100) groupDiscountPercentage = 15;
+    else if (num >= 101 && num <= 200) groupDiscountPercentage = 20;
+    else if (num >= 201) groupDiscountPercentage = 25;
     const groupDiscountUSD = subtotalUSD * (groupDiscountPercentage / 100);
 
     let ageAdjustmentPercentage = 0;
-    const age = new Date().getFullYear() - new Date(traveler.dob).getFullYear();
-    if (age >= 66) ageAdjustmentPercentage = 50;
-    const ageSurchargeUSD = subtotalUSD * (ageAdjustmentPercentage / 100);
+    const birthDate = new Date(traveler.dob);
+    const age = new Date(new Date().getTime() - birthDate.getTime()).getFullYear() - 1970;
     
-    const winterSportsSurchargeUSD = traveler.winterSports ? subtotalUSD * 1.00 : 0;
+    if (age < 18) ageAdjustmentPercentage = -50;
+    else if (age >= 66 && age <= 75) ageAdjustmentPercentage = 50;
+    else if (age >= 76 && age <= 80) ageAdjustmentPercentage = 100;
+    else if (age >= 81) ageAdjustmentPercentage = 300;
+    const ageSurchargeUSD = (subtotalUSD * (ageAdjustmentPercentage / 100));
+
+    const winterSportsSurchargeUSD = traveler.winterSports ? subtotalUSD : 0;
     const totalPayableUSD = subtotalUSD - groupDiscountUSD + ageSurchargeUSD + winterSportsSurchargeUSD;
     
     this.premium = {
@@ -145,73 +175,172 @@ export class TravelQuoteComponent implements OnInit, OnDestroy {
       totalPayableKES: totalPayableUSD * this.USD_TO_KES_RATE,
       groupDiscountPercentage, ageAdjustmentPercentage
     };
-
-    this.selectedPlanDetails = this.allTravelPlans.find(p => p.id === this.qf.plan.value) || null;
   }
 
   nextStep(): void { 
-    if(this.currentStep === 1 && this.quoteForm.invalid) {
-      this.quoteForm.markAllAsTouched();
-      return;
-    }
-    if(this.currentStep === 2 && this.travelerDetailsForm.invalid) {
-      this.travelerDetailsForm.markAllAsTouched();
-      return;
-    }
-    if(this.currentStep < 3) {
-      this.calculatePremium(); // ensure premium is calculated before moving to next step
+    if (this.currentStep === 1 && this.quoteForm.invalid) { this.quoteForm.markAllAsTouched(); return; }
+    if (this.currentStep === 2 && this.travelerDetailsForm.invalid) { this.travelerDetailsForm.markAllAsTouched(); return; }
+    if (this.currentStep < 3) {
+      this.calculatePremium();
+      if (this.currentStep === 2) {
+        this.saveQuoteToLocalStorage();
+      }
       this.currentStep++;
     } 
   }
+  
   prevStep(): void { if (this.currentStep > 1) this.currentStep--; }
+
+  saveQuoteToLocalStorage(): void {
+    if (this.travelerDetailsForm.invalid || !this.selectedPlanDetails) return;
+    this.travelQuoteService.saveQuote({
+        planDetails: { name: this.selectedPlanDetails.name, duration: this.getDurationText(this.qf.duration.value) },
+        travelerDetails: this.travelerDetailsForm.value,
+        premiumSummary: this.premium
+    });
+  }
 
   handlePayment(): void {
     if (this.travelerDetailsForm.invalid) return;
     this.authService.check().pipe(take(1)).subscribe(isAuthenticated => {
-        if (isAuthenticated) {
-            this.openPaymentDialog();
-        } else {
-            this.router.navigate(['/']);
-        }
+      if (isAuthenticated) { this.openPaymentDialog(); } 
+      else { this.router.navigate(['/']); }
     });
   }
 
   private openPaymentDialog(): void {
     const dialogRef = this.dialog.open(MpesaPaymentModalComponent, {
-      data: {
-        amount: this.premium.totalPayableKES,
-        phoneNumber: this.travelerDetailsForm.get('phoneNumber')?.value,
-        reference: `FID-TRV-${Date.now()}`,
-        description: `${this.selectedPlanDetails?.name} Cover`
-      }
+      data: { amount: this.premium.totalPayableKES, phoneNumber: this.travelerDetailsForm.get('phoneNumber')?.value, reference: `FID-TRV-${Date.now()}`, description: `${this.selectedPlanDetails?.name} Cover` }
     });
     dialogRef.afterClosed().subscribe((result: PaymentResult | null) => { if (result?.success) this.router.navigate(['/dashboard']); });
   }
   
-  getDurationText(value: string): string {
-    const allDurations = [...this.standardDurations, ...this.studentDurations];
-    return allDurations.find(d => d.value === value)?.label || 'N/A';
-  }
-  
+  getDurationText(value: string): string { return [...this.standardDurations, ...this.studentDurations].find(d => d.value === value)?.label || 'N/A'; }
   closeForm(): void { this.router.navigate(['/dashboard']); }
   abs(value: number): number { return Math.abs(value); }
-
   private resetPremium(): Premium { return { baseRateUSD: 0, subtotalUSD: 0, groupDiscountUSD: 0, ageSurchargeUSD: 0, winterSportsSurchargeUSD: 0, totalPayableUSD: 0, totalPayableKES: 0, groupDiscountPercentage: 0, ageAdjustmentPercentage: 0 }; }
 
   private initializePlans(): void {
     this.allTravelPlans = [
-      { id: 'AFRICA_ASIA', name: 'Africa/Asia', description: 'Value cover for regional travel', type: 'standard', benefits: [] },
-      { id: 'EUROPE', name: 'Europe Basic', description: 'Essential cover for Europe & Schengen', type: 'standard', benefits: [] },
-      { id: 'WW_BASIC', name: 'Worldwide Basic', description: 'Basic worldwide cover for essentials', type: 'standard', benefits: [] },
-      { id: 'WW_PLUS', name: 'Worldwide Plus', description: 'Comprehensive worldwide cover', type: 'standard', benefits: []},
-      { id: 'WW_EXTRA', name: 'Worldwide Extra', description: 'Maximum protection for global travel', type: 'standard', benefits: []},
-      { id: 'STUDENT_CLASSIC', name: 'Students Classic', description: 'Worldwide student cover', type: 'student', benefits: [] },
-      { id: 'STUDENT_PREMIUM', name: 'Students Premium', description: 'Enhanced worldwide student cover', type: 'student', benefits: [] },
+      // STANDARD PLANS - Fully populated from the first UI image
+      { 
+        id: 'AFRICA_ASIA', name: 'Africa/Asia', description: 'Value offer for Travelers outside of Europe', type: 'standard', tags: ['Africa', 'Asia'],
+        benefits: [
+          { name: 'Medical Expenses & Hospitalization abroad', included: true, limit: '€85,000' },
+          { name: 'Excess', included: true, limit: '€50' },
+          { name: 'Excess Applicable for Consultancy Quarantine Illness at Destination', included: false },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: '€85,000' },
+          { name: 'Emergency Dental Care', included: true, limit: '€600' },
+          { name: 'Excess', included: true, limit: '€25' },
+          { name: 'Repatriation of mortal remains', included: true, limit: '€60,000' },
+          { name: 'Repatriation of Family Member travelling with the Beneficiary to assist', included: true, limit: '€8,000' },
+          { name: 'Emergency Return Home Following Death of a close Family member', included: false },
+          { name: 'Extra-budgetary Emergency Visit', included: false },
+          { name: 'Hijack and Consequential expenses', included: false },
+        ]
+      },
+      { 
+        id: 'EUROPE', name: 'Europe Basic', description: 'Value offer for Travel in Europe - Limits in Euros', type: 'standard', tags: ['Europe', 'Basic Coverage'],
+        benefits: [
+          { name: 'Medical Expenses & Hospitalization abroad', included: true, limit: '€36,000' },
+          { name: 'Excess', included: true, limit: '€50' },
+          { name: 'Excess Applicable for Consultancy Quarantine Illness at Destination', included: true },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: '€36,000' },
+          { name: 'Emergency Dental Care', included: true, limit: '€500' },
+          { name: 'Excess', included: true, limit: '€25' },
+          { name: 'Repatriation of mortal remains', included: true, limit: '€60,000' },
+          { name: 'Repatriation of Family Member travelling with the Beneficiary to assist', included: true, limit: '€6,000' },
+          { name: 'Emergency Return Home Following Death of a close Family member', included: true, limit: 'Same Class Ticket' },
+        ]
+      },
+      { 
+        id: 'WW_BASIC', name: 'Worldwide Basic', description: 'Basic Worldwide Cover', type: 'standard', tags: ['Worldwide', 'Basic Coverage'], isMostPopular: true,
+        benefits: [
+          { name: 'Medical Expenses & Hospitalization abroad', included: true, limit: '€140,000' },
+          { name: 'Excess', included: true, limit: '€50' },
+          { name: 'Excess Applicable for Consultancy Quarantine Illness at Destination', included: true },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: '€140,000' },
+          { name: 'Emergency Dental Care', included: true, limit: '€500' },
+          { name: 'Excess', included: true, limit: '€25' },
+          { name: 'Repatriation of mortal remains', included: true, limit: '€61,000' },
+          { name: 'Repatriation of Family Member travelling with the Beneficiary to assist', included: true, limit: '€1,500' },
+          { name: 'Emergency Return Home Following Death of a close Family member', included: true, limit: 'Same Class Ticket' },
+          { name: 'Extra-budgetary Emergency Visit', included: true, limit: 'Same Class Ticket' },
+          { name: 'Hijack and Consequential expenses', included: true, limit: '€250 day max' },
+        ]
+      },
+      { 
+        id: 'WW_PLUS', name: 'Worldwide Plus', description: 'Comprehensive Worldwide Travel Insurance', type: 'standard', tags: ['Worldwide', 'Plus Coverage'],
+        benefits: [
+          { name: 'Medical Expenses & Hospitalization abroad', included: true, limit: '€175,000' },
+          { name: 'Excess', included: true, limit: '€50' },
+          { name: 'Excess Applicable for Consultancy Quarantine Illness at Destination', included: true },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: '€175,000' },
+          { name: 'Emergency Dental Care', included: true, limit: '€650' },
+          { name: 'Excess', included: true, limit: '€25' },
+          { name: 'Repatriation of mortal remains', included: true, limit: '€61,000' },
+          { name: 'Repatriation of Family Member travelling with the Beneficiary to assist', included: true, limit: '€2,000' },
+          { name: 'Emergency Return Home Following Death of a close Family member', included: true, limit: 'Same Class Ticket' },
+          { name: 'Extra-budgetary Emergency Visit', included: true, limit: 'Same Class Ticket' },
+        ]
+      },
+      { 
+        id: 'WW_EXTRA', name: 'Worldwide Extra', description: 'Extra Protection whilst travelling', type: 'standard', tags: ['Worldwide', 'Extra Coverage'],
+        benefits: [
+          { name: 'Medical Expenses & Hospitalization abroad', included: true, limit: '€160,000' },
+          { name: 'Excess', included: true, limit: '€50' },
+          { name: 'Excess Applicable for Consultancy Quarantine Illness at Destination', included: true },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: '€160,000' },
+          { name: 'Emergency Dental Care', included: true, limit: '€650' },
+          { name: 'Excess', included: true, limit: '€25' },
+          { name: 'Repatriation of mortal remains', included: true, limit: '€161,000' },
+          { name: 'Repatriation of Family Member travelling with the Beneficiary to assist', included: true, limit: '€3,000' },
+          { name: 'Emergency Return Home Following Death of a close Family member', included: true, limit: 'Same Class Ticket' },
+          { name: 'Extra-budgetary Emergency Visit', included: true, limit: 'Return tickets in economy class and 1500 € per day max 10 days' },
+        ]
+      },
+      
+      // STUDENT PLANS - Fully populated from the second brochure image
+      { 
+        id: 'STUDENT_CLASSIC', name: 'Students Classic', description: 'Comprehensive worldwide cover for students.', type: 'student', tags: ['Worldwide', 'Student'],
+        benefits: [
+          { name: 'Medical expenses & hospitalization abroad - Covid-19', included: true, limit: 'USD 60,000', notes: 'Excess 70' },
+          { name: 'Compulsory Quarantine in case of infection with Covid-19', included: true, limit: '$80 per day', notes: 'Max. 14 days' },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: 'USD 30,000' },
+          { name: 'Emergency dental care', included: true, limit: 'USD 500', notes: 'Excess 70' },
+          { name: 'Repatriation of mortal remains', included: true, limit: 'USD 15,000' },
+          { name: 'Emergency return home following death of a close relative', included: true, limit: 'USD 2,000' },
+          { name: 'Travel of one immediate family member', included: true, limit: 'USD 100 per day', notes: 'Max 10 days' },
+          { name: '24 Hours Assistance Services', included: true, limit: 'Covered' },
+          { name: 'Delivery of Medicines', included: true, limit: 'USD 1,000' },
+          { name: 'Relay of Urgent messages', included: true, limit: 'Unlimited' },
+          { name: 'Loss of Passport, driving license, national identity card abroad', included: true, limit: 'USD 300' },
+          { name: 'Advance of Bail Bond', included: true, limit: 'USD 15,000' },
+          { name: 'Personal Civil Liability', included: true, limit: 'USD 50,000', notes: 'Excess 150' },
+          { name: 'Legal Defense', included: true, limit: 'USD 2,000' },
+          { name: 'Winter Sports (suppression of exclusion)', included: true, limit: 'Available as an Option' },
+        ]
+      },
+      { 
+        id: 'STUDENT_PREMIUM', name: 'Students Premium', description: 'Enhanced worldwide protection for students.', type: 'student', tags: ['Worldwide', 'Premium'],
+        benefits: [
+          { name: 'Medical expenses & hospitalization abroad - Covid-19', included: true, limit: 'USD 100,000', notes: 'Excess 70' },
+          { name: 'Compulsory Quarantine in case of infection with Covid-19', included: true, limit: '$80 per day', notes: 'Max. 14 days' },
+          { name: 'Emergency medical evacuation in case of illness or Accident', included: true, limit: 'USD 50,000' },
+          { name: 'Emergency dental care', included: true, limit: 'USD 500', notes: 'Excess 70' },
+          { name: 'Repatriation of mortal remains', included: true, limit: 'USD 25,000' },
+          { name: 'Emergency return home following death of a close relative', included: true, limit: 'USD 2,000' },
+          { name: 'Travel of one immediate family member', included: true, limit: 'USD 100 per day', notes: 'Max 10 days' },
+          { name: '24 Hours Assistance Services', included: true, limit: 'Covered' },
+          { name: 'Delivery of Medicines', included: true, limit: 'USD 1,000' },
+          { name: 'Relay of Urgent messages', included: true, limit: 'Unlimited' },
+          { name: 'Loss of Passport, driving license, national identity card abroad', included: true, limit: 'USD 300' },
+          { name: 'Advance of Bail Bond', included: true, limit: 'USD 20,000' },
+          { name: 'Personal Civil Liability', included: true, limit: 'USD 50,000', notes: 'Excess 150' },
+          { name: 'Legal Defense', included: true, limit: 'USD 2,000' },
+          { name: 'Winter Sports (suppression of exclusion)', included: true, limit: 'Available as an Option' },
+        ]
+      },
     ];
-    this.allTravelPlans.forEach(plan => {
-      plan.benefits = this.benefitCategories.flatMap(cat => cat.benefits)
-        .map(bName => ({ name: bName, limit: this.getBenefitLimit(plan.id, bName) }))
-        .filter(b => b.limit !== 'N/A');
-    });
   }
 }
