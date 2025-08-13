@@ -7,7 +7,7 @@ $fidelity-medium-text: #6b7280; // Tailwind gray-500
 $fidelity-light-gray: #f9fafb; // Tailwind gray-50
 $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
 
-// --- UTILITY CLASSES (to override any lingering old classes) ---
+// --- UTILITY CLASSES ---
 .bg-fidelity-turquoise { background-color: $fidelity-turquoise !important; }
 .bg-fidelity-lime { background-color: $fidelity-lime !important; }
 .text-fidelity-turquoise { color: $fidelity-turquoise !important; }
@@ -38,6 +38,11 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   font-weight: 600;
 }
 
+/* NEW: Style for child icons in the "New Quote" dropdown */
+.nav-menu-item + div a .sidebar-nav-icon {
+  color: $fidelity-lime !important;
+}
+
 .stats-card {
   background-color: $fidelity-white;
   padding: 1.5rem;
@@ -51,15 +56,9 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
     transform: translateY(-2px);
   }
 
-  h3 {
-    color: $fidelity-medium-text;
-  }
+  h3 { color: $fidelity-medium-text; }
+  p { color: $fidelity-turquoise; }
 
-  p {
-    color: $fidelity-turquoise;
-  }
-
-  // The highlight bar under the stat
   .highlight-bar {
     width: 3rem;
     height: 4px;
@@ -76,7 +75,7 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   background-color: $fidelity-light-gray;
   
   &.expanded {
-    max-height: 1000px; // A large enough value to accommodate content
+    max-height: 1000px;
     transition: max-height 0.6s ease-in;
   }
 }
@@ -106,13 +105,6 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   flex-direction: column;
 }
 
-.detail-item-full {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.75rem;
-}
-
 .detail-label {
   font-size: 0.75rem;
   color: $fidelity-medium-text;
@@ -127,7 +119,6 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   word-break: break-word;
 }
 
-// Styles for the custom Fidelity Toast Message
 ::ng-deep .fidelity-toast-panel {
   --mdc-snackbar-container-color: #{$fidelity-dark-text};
   --mdc-snackbar-supporting-text-color: #{$fidelity-white};
@@ -141,8 +132,6 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   }
 }
 
-// Global style for the payment modal dialog panel.
-// This is how we style the separate modal component from the dashboard.
 ::ng-deep .payment-modal-panel {
     .mat-mdc-dialog-container .mdc-dialog__surface {
         background: transparent !important;
