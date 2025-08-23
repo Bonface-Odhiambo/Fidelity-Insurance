@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms'; // UPDATED: Added form imports
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -37,7 +37,7 @@ interface Activity { id: string; title: string; description: string; timestamp: 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ CommonModule, RouterModule, ReactiveFormsModule, MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatChipsModule, MatCardModule, MatDialogModule, MatBadgeModule, MatSnackBarModule, DatePipe, TitleCasePipe, MpesaPaymentModalComponent ], // UPDATED: Added ReactiveFormsModule
+  imports: [ CommonModule, RouterModule, ReactiveFormsModule, MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatChipsModule, MatCardModule, MatDialogModule, MatBadgeModule, MatSnackBarModule, DatePipe, TitleCasePipe, MpesaPaymentModalComponent ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isMobileSidebarOpen = false; 
   expandedPolicyId: string | null = null;
   
-  // NEW: Properties for Integrated Claim Modal
+  // Properties for Integrated Claim Modal
   showClaimModal = false;
   selectedPolicyForClaim: Policy | null = null;
   claimForm: FormGroup;
@@ -63,9 +63,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dialog: MatDialog, 
     public router: Router, 
     private snackBar: MatSnackBar,
-    private fb: FormBuilder // UPDATED: Injected FormBuilder
+    private fb: FormBuilder
   ) {
-    // NEW: Initialize the claim form in the constructor
     this.claimForm = this.fb.group({
       policyNumber: [{ value: '', disabled: true }],
       dateOfLoss: ['', Validators.required],
@@ -87,7 +86,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete(); 
   }
 
-  // NEW: Methods for Integrated Claim Modal
+  // --- Methods for Integrated Claim Modal ---
   openClaimModal(policy: Policy): void {
     this.selectedPolicyForClaim = policy;
     this.claimForm.patchValue({ policyNumber: policy.policyNumber });
@@ -127,7 +126,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       description: `Claim for policy ${newClaim.policyNumber} is now under review.`,
       timestamp: new Date(),
       icon: 'gavel',
-      iconColor: '#f59e0b' // amber-500
+      iconColor: '#f59e0b'
     });
     
     this.loadDashboardData();
@@ -145,26 +144,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return !!control && control.invalid && (control.dirty || control.touched);
   }
 
-  // UPDATED: This method now contains the improved error message logic for the description field.
+  // =========================================================================
+  // === CORRECTED IMPLEMENTATION FOR THE DYNAMIC ERROR MESSAGE            ===
+  // =========================================================================
   getErrorMessage(form: FormGroup, field: string): string {
     const control = form.get(field);
     if (!control || !control.errors) return '';
-    if (control.hasError('required')) return 'This field is required.';
-    if (control.hasError('min')) return `The minimum value is ${control.errors['min'].min}.`;
 
-    if (control.hasError('minLength')) {
-      const requiredLength = control.errors['minLength'].requiredLength;
-      const actualLength = control.value?.length || 0;
+    if (control.hasError('required')) {
+      return 'This field is required.';
+    }
+    if (control.hasError('min')) {
+      return `The minimum value is ${control.errors['min'].min}.`;
+    }
+    // CORRECTED: Use 'minlength' (lowercase) instead of 'minLength' (camelCase)
+    if (control.hasError('minlength')) {
+      const errorData = control.errors['minlength'];
+      const requiredLength = errorData.requiredLength;
+      const actualLength = errorData.actualLength;
       
-      // Specific, helpful message for the 'description' field
       if (field === 'description') {
         const difference = requiredLength - actualLength;
-        // Handle pluralization correctly
         const plural = difference === 1 ? 'character' : 'characters';
         return `Please type ${difference} more ${plural} to meet the minimum length.`;
       }
       
-      // Fallback for any other field that might use minLength
       return `Must be at least ${requiredLength} characters.`;
     }
 
