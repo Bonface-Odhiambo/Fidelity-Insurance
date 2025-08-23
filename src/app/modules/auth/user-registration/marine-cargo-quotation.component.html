@@ -65,6 +65,53 @@
                                     <div><label class="mb-2 block text-sm font-medium text-gray-700"><span *ngIf="displayUser.type === 'individual'">ID Number</span><span *ngIf="displayUser.type === 'intermediary'">ID / Corp. Reg. No.</span><span class="text-red-500">*</span></label><input type="text" formControlName="idNumber" class="focus-ring-primary w-full rounded-md border bg-white px-3 py-2" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'idNumber')}"/><div *ngIf="isFieldInvalid(quotationForm, 'idNumber')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'idNumber') }}</div></div>
                                     <div><label class="mb-2 block text-sm font-medium text-gray-700">KRA PIN <span class="text-red-500">*</span></label><input type="text" formControlName="kraPin" class="focus-ring-primary w-full rounded-md border bg-white px-3 py-2" placeholder="Format: A123456789Z" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'kraPin')}"/><div *ngIf="isFieldInvalid(quotationForm, 'kraPin')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'kraPin') }}</div></div>
                                 </div>
+
+                                <!-- KYC Document Uploads Section -->
+                                <h4 class="mt-6 mb-4 text-lg font-semibold text-gray-700 border-t pt-6">KYC Document Uploads</h4>
+                                <p class="mb-4 text-sm text-gray-500">Please upload the following required documents. Accepted formats: PDF, PNG, JPG.</p>
+                                <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+                                    <!-- KRA PIN Upload -->
+                                    <div>
+                                        <label for="kraPinUpload" class="block text-sm font-medium text-gray-700">
+                                            KRA PIN Certificate <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="mt-1">
+                                            <input id="kraPinUpload" formControlName="kraPinUpload" type="file" class="block w-full cursor-pointer rounded-md border border-gray-300 text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20 focus-ring-primary" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'kraPinUpload')}">
+                                        </div>
+                                        <div *ngIf="isFieldInvalid(quotationForm, 'kraPinUpload')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'kraPinUpload') }}</div>
+                                    </div>
+                                    <!-- National ID Upload -->
+                                    <div>
+                                        <label for="nationalIdUpload" class="block text-sm font-medium text-gray-700">
+                                            National ID / Passport <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="mt-1">
+                                            <input id="nationalIdUpload" formControlName="nationalIdUpload" type="file" class="block w-full cursor-pointer rounded-md border border-gray-300 text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20 focus-ring-primary" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'nationalIdUpload')}">
+                                        </div>
+                                        <div *ngIf="isFieldInvalid(quotationForm, 'nationalIdUpload')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'nationalIdUpload') }}</div>
+                                    </div>
+                                    <!-- Invoice Upload -->
+                                    <div>
+                                        <label for="invoiceUpload" class="block text-sm font-medium text-gray-700">
+                                            Proforma Invoice <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="mt-1">
+                                            <input id="invoiceUpload" formControlName="invoiceUpload" type="file" class="block w-full cursor-pointer rounded-md border border-gray-300 text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20 focus-ring-primary" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'invoiceUpload')}">
+                                        </div>
+                                        <div *ngIf="isFieldInvalid(quotationForm, 'invoiceUpload')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'invoiceUpload') }}</div>
+                                    </div>
+                                    <!-- IDF Document Upload -->
+                                    <div>
+                                        <label for="idfUpload" class="block text-sm font-medium text-gray-700">
+                                            IDF Document <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="mt-1">
+                                            <input id="idfUpload" formControlName="idfUpload" type="file" class="block w-full cursor-pointer rounded-md border border-gray-300 text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20 focus-ring-primary" [ngClass]="{'border-red-500': isFieldInvalid(quotationForm, 'idfUpload')}">
+                                        </div>
+                                        <div *ngIf="isFieldInvalid(quotationForm, 'idfUpload')" class="mt-1 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'idfUpload') }}</div>
+                                    </div>
+                                </div>
+                                
                                 <h3 class="mb-4 mt-6 border-t pt-6 text-xl font-semibold text-gray-800">Shipment Details</h3>
                                 <div class="mb-6"><label class="mb-3 block text-sm font-medium text-gray-700">Cargo Type <span class="text-red-500">*</span></label><div class="flex gap-4"><label class="flex items-center"><input type="radio" formControlName="cargoType" value="containerized" class="focus-ring-primary h-4 w-4 border-gray-300 text-primary"/><span class="ml-2 text-sm text-gray-700">Containerized</span></label><label class="flex items-center"><input type="radio" formControlName="cargoType" value="non-containerized" class="focus-ring-primary h-4 w-4 border-gray-300 text-primary"/><span class="ml-2 text-sm text-gray-700">Non-Containerized</span></label></div><div *ngIf="isFieldInvalid(quotationForm, 'cargoType')" class="mt-2 text-sm text-red-600">{{ getErrorMessage(quotationForm, 'cargoType') }}</div></div>
                                 <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">

@@ -22,7 +22,6 @@ interface DisplayUser { type: 'individual' | 'intermediary'; name: string; }
 
 
 // --- PAYMENT MODAL COMPONENT ---
-// NOTE: This component is assumed to be correct from the previous prompt and is included for completeness.
 @Component({ 
     selector: 'app-payment-modal', 
     standalone: true, 
@@ -147,90 +146,49 @@ export class MarineCargoQuotationComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
-    /**
-     * UPDATED: This method is triggered when "Get Quote" is clicked.
-     * It saves the quote and proceeds to the next step.
-     */
-    onSubmit(): void {
-        if (this.quotationForm.invalid) {
-            this.quotationForm.markAllAsTouched();
-            this.showToast('Please correct the errors before proceeding.');
-            return;
-        }
-        
-        if (!this.showHighRiskModal && !this.showExportModal) {
-            this.calculatePremium();
-            const newQuote: PendingQuote = { 
-                id: this.editModeQuoteId || `GEM-Q-${Date.now()}`, 
-                title: `Marine - ${this.quotationForm.value.marineCargoType || 'Quote'}`, 
-                type: 'marine', 
-                status: 'pending', 
-                createdDate: new Date().toISOString(), 
-                quoteDetails: this.quotationForm.value, 
-                premium: this.premiumCalculation 
-            };
-            // Always save the quote to localStorage before moving to the next step
-            this.authService.savePendingQuote(newQuote);
-            this.showToast('Your quote has been saved! Please review and proceed.');
-            this.goToStep(2);
-        }
-    }
-
-    /**
-     * UPDATED: This method is triggered by "Proceed to Payment".
-     * It checks login status to determine the next action.
-     */
-    handlePayment(): void {
-        if (this.isLoggedIn) {
-            // If logged in, open the payment modal.
-            this.openPaymentModal();
-        } else {
-            // If NOT logged in, the quote is already saved from onSubmit.
-            // Inform the user and redirect to the homepage.
-            this.showToast('Your quote has been saved. Please log in or sign up to complete payment.');
-            this.router.navigate(['/']); 
-        }
-    }
-    
-    closeForm(): void {
-        if (this.isLoggedIn) { this.router.navigate(['/dashboard']); } // Corrected to new dashboard path
-        else { this.router.navigate(['/']); }
-    }
-
-    switchUser(event: any): void { 
-        const userType = event.target.value as 'individual' | 'intermediary';
-        this.displayUser.type = userType;
-        this.showToast(`Switched to ${userType} view.`); 
-        if (this.currentStep === 2) { this.calculatePremium(); }
-    }
-
-    private openPaymentModal(): void { 
-        const dialogRef = this.dialog.open(PaymentModalComponent, { 
-            data: { 
-                amount: this.premiumCalculation.totalPayable, 
-                phoneNumber: this.quotationForm.get('phoneNumber')?.value, 
-                reference: this.editModeQuoteId || `GEM${Date.now()}`, 
-                description: `Marine Cargo - ${this.quotationForm.get('marineCargoType')?.value}` 
-            }, 
-            panelClass: 'payment-dialog-container', 
-            autoFocus: false 
-        }); 
-        
-        dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result: PaymentResult | null) => { 
-            if (result?.success) { 
-                if (this.editModeQuoteId) { 
-                    this.authService.removePendingQuote(this.editModeQuoteId); 
-                } 
-                this.showToast('Payment successful! Redirecting to your dashboard.'); 
-                setTimeout(() => { this.router.navigate(['/dashboard']); }, 2000); // Corrected to new dashboard path
-            } 
+    private createQuotationForm(): FormGroup { 
+        return this.fb.group({ 
+            // Customer Details
+            firstName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], 
+            lastName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], 
+            email: ['', [Validators.required, Validators.email]], 
+            phoneNumber: ['', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], 
+            idNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9-]{5,15}$/)]], 
+            kraPin: ['', [Validators.required, Validators.pattern(/^[A-Z]\d{9}[A-Z]$/i)]], 
+            
+            // KYC Documents (NEW)
+            kraPinUpload: [null, Validators.required],
+            nationalIdUpload: [null, Validators.required],
+            invoiceUpload: [null, Validators.required],
+            idfUpload: [null, Validators.required],
+            
+            termsAndPolicyConsent: [false, Validators.requiredTrue], 
+            
+            // Shipment Details
+            cargoType: ['', Validators.required], 
+            tradeType: ['import', Validators.required], 
+            modeOfShipment: ['', Validators.required], 
+            marineProduct: ['Institute Cargo Clauses (A) - All Risks', Validators.required], 
+            marineCargoType: ['', Validators.required], 
+            origin: ['', Validators.required], 
+            destination: [''], 
+            vesselName: ['', Validators.required], 
+            coverStartDate: ['', [Validators.required, this.noPastDatesValidator]], 
+            sumInsured: ['', [Validators.required, Validators.min(10000)]], 
+            descriptionOfGoods: ['', [Validators.required, Validators.minLength(20)]], 
+            ucrNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9]+$/), Validators.minLength(15)]], 
+            idfNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9]+$/), Validators.minLength(15)]], 
         }); 
     }
 
-    // --- All other methods remain unchanged ---
+    // --- All other methods remain unchanged as they are not affected by this UI change ---
+    onSubmit(): void { if (this.quotationForm.invalid) { this.quotationForm.markAllAsTouched(); this.showToast('Please correct the errors before proceeding.'); return; } if (!this.showHighRiskModal && !this.showExportModal) { this.calculatePremium(); const newQuote: PendingQuote = { id: this.editModeQuoteId || `GEM-Q-${Date.now()}`, title: `Marine - ${this.quotationForm.value.marineCargoType || 'Quote'}`, type: 'marine', status: 'pending', createdDate: new Date().toISOString(), quoteDetails: this.quotationForm.value, premium: this.premiumCalculation }; this.authService.savePendingQuote(newQuote); this.showToast('Your quote has been saved! Please review and proceed.'); this.goToStep(2); } }
+    handlePayment(): void { if (this.isLoggedIn) { this.openPaymentModal(); } else { this.showToast('Your quote has been saved. Please log in or sign up to complete payment.'); this.router.navigate(['/']); } }
+    closeForm(): void { if (this.isLoggedIn) { this.router.navigate(['/dashboard']); } else { this.router.navigate(['/']); } }
+    switchUser(event: any): void { const userType = event.target.value as 'individual' | 'intermediary'; this.displayUser.type = userType; this.showToast(`Switched to ${userType} view.`); if (this.currentStep === 2) { this.calculatePremium(); } }
+    private openPaymentModal(): void { const dialogRef = this.dialog.open(PaymentModalComponent, { data: { amount: this.premiumCalculation.totalPayable, phoneNumber: this.quotationForm.get('phoneNumber')?.value, reference: this.editModeQuoteId || `GEM${Date.now()}`, description: `Marine Cargo - ${this.quotationForm.get('marineCargoType')?.value}` }, panelClass: 'payment-dialog-container', autoFocus: false }); dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result: PaymentResult | null) => { if (result?.success) { if (this.editModeQuoteId) { this.authService.removePendingQuote(this.editModeQuoteId); } this.showToast('Payment successful! Redirecting to your dashboard.'); setTimeout(() => { this.router.navigate(['/dashboard']); }, 2000); } }); }
     private prefillClientDetails(): void { if (!this.currentUser) return; const registrationData = this.authService.getRegistrationData(); if (registrationData) { const nameParts = registrationData.fullName?.split(' ') || [this.currentUser.name]; this.quotationForm.patchValue({ firstName: nameParts[0] || '', lastName: nameParts.slice(1).join(' ') || '', email: this.currentUser.email, phoneNumber: registrationData.phoneNumber || this.currentUser.phoneNumber || '' }); } }
     private loadQuoteForEditing(quoteId: string): void { const quoteToEdit = this.authService.getPendingQuotes().find(q => q.id === quoteId); if (quoteToEdit) { this.quotationForm.patchValue(quoteToEdit.quoteDetails); this.premiumCalculation = quoteToEdit.premium; this.goToStep(2); this.showToast(`Editing your saved quote: ${quoteToEdit.title}.`); } else { this.showToast('Could not find the quote you want to edit.'); this.router.navigate(['/dashboard']); } }
-    private createQuotationForm(): FormGroup { return this.fb.group({ firstName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], lastName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], email: ['', [Validators.required, Validators.email]], phoneNumber: ['', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], idNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9-]{5,15}$/)]], kraPin: ['', [Validators.required, Validators.pattern(/^[A-Z]\d{9}[A-Z]$/i)]], termsAndPolicyConsent: [false, Validators.requiredTrue], cargoType: ['', Validators.required], tradeType: ['import', Validators.required], modeOfShipment: ['', Validators.required], marineProduct: ['Institute Cargo Clauses (A) - All Risks', Validators.required], marineCargoType: ['', Validators.required], origin: ['', Validators.required], destination: [''], vesselName: ['', Validators.required], coverStartDate: ['', [Validators.required, this.noPastDatesValidator]], sumInsured: ['', [Validators.required, Validators.min(10000)]], descriptionOfGoods: ['', [Validators.required, Validators.minLength(20)]], ucrNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9]+$/), Validators.minLength(15)]], idfNumber: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9]+$/), Validators.minLength(15)]], }); }
     private createModalForm(): FormGroup { return this.fb.group({ kraPin: ['', [Validators.required, Validators.pattern(/^[A-Z]\d{9}[A-Z]$/i)]], firstName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], lastName: ['', [Validators.required, Validators.pattern(/^[a-zA-Z\s'-]+$/)]], email: ['', [Validators.required, Validators.email]], phoneNumber: ['', [Validators.required, Validators.pattern(/^(07|01)\d{8}$/)]], marineProduct: ['Institute Cargo Clauses (A) - All Risks', Validators.required], marineCargoType: ['', Validators.required], idfNumber: ['', [Validators.pattern(/^[a-zA-Z0-9]+$/), Validators.minLength(15)]], ucrNumber: ['', [Validators.pattern(/^[a-zA-Z0-_]+$/), Validators.minLength(15)]], originCountry: ['', Validators.required], destinationCountry: ['', Validators.required], shipmentDate: ['', [Validators.required, this.noPastDatesValidator]], goodsDescription: ['', [Validators.required, Validators.minLength(20), maxWords(100)]], termsAndPolicyConsent: [false, Validators.requiredTrue], }); }
     private createExportRequestForm(): FormGroup { const form = this.createModalForm(); form.get('originCountry')?.patchValue('Kenya'); form.get('originCountry')?.disable(); return form; }
     private createHighRiskRequestForm(): FormGroup { return this.createModalForm(); }

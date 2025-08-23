@@ -7,16 +7,41 @@ $fidelity-medium-text: #6b7280;
 $fidelity-light-gray: #f9fafb;
 $fidelity-border-gray: #e5e7eb;
 
+/* --- NEW: CSS Variables for Tailwind Compatibility --- */
+:host {
+  --primary-color: #{$fidelity-turquoise};
+  --hover-color: #{$fidelity-lime};
+  --brand-color: #{$fidelity-turquoise};
+  --focus-border-color: #{$fidelity-turquoise};
+  --focus-ring-color: rgba(3, 123, 124, 0.2); // Turquoise with opacity
+}
+
+/* --- NEW: Utility classes for consistent branding --- */
+.bg-primary { background-color: var(--primary-color); }
+.text-primary { color: var(--primary-color); }
+.bg-brand { background-color: var(--brand-color); }
+.text-brand { color: var(--brand-color); }
+
+// These are needed for the file input styling with opacity
+.bg-primary\/10 { background-color: rgba(3, 123, 124, 0.1); }
+.hover\:bg-primary\/20:hover { background-color: rgba(3, 123, 124, 0.2); }
+
+
 /* Custom button styling for Fidelity */
 .btn-primary {
   background-color: $fidelity-turquoise; 
   color: $fidelity-white;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+  transition: background-color 0.3s ease-in-out, transform 0.2s ease, color 0.3s ease-in-out;
+  border-radius: 9999px; // Pill shape
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+
   &:hover:not(:disabled) {
     background-color: $fidelity-lime;
     color: $fidelity-dark-text;
     transform: translateY(-2px);
   }
+
   &:disabled {
     background-color: #9ca3af;
     cursor: not-allowed;
@@ -41,29 +66,17 @@ select {
   border-color: #f87171 !important;
 }
 
-/* Base focus and disabled/readonly states for form elements */
-input, select, textarea {
-  &:focus {
-    outline: none;
-    --tw-ring-color: #{$fidelity-turquoise};
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-    border-color: transparent;
-  }
-  &:disabled, &[readonly] {
-    background-color: $fidelity-light-gray;
-    color: $fidelity-medium-text;
-    cursor: not-allowed;
-  }
+/* Base focus states for form elements using the new CSS variables */
+.focus-ring-primary:focus {
+  outline: none;
+  border-color: var(--focus-border-color);
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
 }
 
-/* Custom style for readonly inputs to not appear disabled */
-input.readonly-active[readonly] {
-    background-color: $fidelity-white;
-    color: $fidelity-dark-text;
-    cursor: default;
-    border-color: $fidelity-border-gray;
+input[type="radio"].text-primary:checked,
+input[type="checkbox"].text-primary:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 fieldset:disabled {
@@ -71,14 +84,30 @@ fieldset:disabled {
     pointer-events: none;
 }
 
-/* Toast and Animation styles */
-.toast-info { background-color: $fidelity-dark-text; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-.step-content, .fixed.inset-0, .animate-fadeIn { animation: fadeIn 0.4s ease-in-out; }
-@keyframes slideInUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
-.fixed.bottom-5 { animation: slideInUp 0.5s ease-in-out; }
+/* Universal Toast styles */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 1.5rem;
+  border-radius: 9999px;
+  z-index: 1050;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out, fadeOut 0.3s ease-in 4.5s forwards;
+  background-color: var(--brand-color);
+  color: white;
+}
 
-/* Global class to apply for modal styling from the component that opens it */
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes fadeOut { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 10px); } }
+
+.step-content { animation: fadeInContent 0.4s ease-in-out; }
+@keyframes fadeInContent { from { opacity: 0; } to { opacity: 1; } }
+
+/* Global class to apply for modal styling */
 ::ng-deep .payment-dialog-container {
     .mat-mdc-dialog-container .mdc-dialog__surface {
         border-radius: 16px !important;
