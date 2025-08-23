@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,7 +17,7 @@ import { MpesaPaymentModalComponent, PaymentResult } from '../shared/components/
 // --- CONSTANTS FOR LOCAL STORAGE KEYS ---
 const TRAVEL_QUOTES_KEY = 'fidelity_pending_quotes';
 const GOLFERS_QUOTES_KEY = 'pendingGolfQuotes';
-const MARINE_QUOTES_KEY = 'fidelity_pending_marine_quotes'; // Assumed key for Marine
+const MARINE_QUOTES_KEY = 'fidelity_pending_marine_quotes';
 
 // --- TYPE DEFINITIONS ---
 type UserRole = 'individual' | 'corporate' | 'intermediary';
@@ -36,7 +37,7 @@ interface Activity { id: string; title: string; description: string; timestamp: 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ CommonModule, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatChipsModule, MatCardModule, MatDialogModule, MatBadgeModule, MatSnackBarModule, DatePipe, TitleCasePipe, MpesaPaymentModalComponent ],
+  imports: [ CommonModule, RouterModule, ReactiveFormsModule, MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatChipsModule, MatCardModule, MatDialogModule, MatBadgeModule, MatSnackBarModule, DatePipe, TitleCasePipe, MpesaPaymentModalComponent ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -53,7 +54,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isMobileSidebarOpen = false; 
   expandedPolicyId: string | null = null;
   
-  constructor(private dialog: MatDialog, public router: Router, private snackBar: MatSnackBar) {}
+  // Properties for Integrated Claim Modal
+  showClaimModal = false;
+  selectedPolicyForClaim: Policy | null = null;
+  claimForm: FormGroup;
+  
+  constructor(
+    private dialog: MatDialog, 
+    public router: Router, 
+    private snackBar: MatSnackBar,
+    private fb: FormBuilder
+  ) {
+    this.claimForm = this.fb.group({
+      policyNumber: [{ value: '', disabled: true }],
+      dateOfLoss: ['', Validators.required],
+      estimatedLoss: ['', [Validators.required, Validators.min(1)]],
+      description: ['', [Validators.required, Validators.minLength(50)]],
+      policeReport: [null, Validators.required],
+      supportingDocuments: [null],
+    });
+  }
   
   ngOnInit(): void { 
     this.loadAllPendingQuotes();
@@ -66,6 +86,74 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete(); 
   }
 
+  // --- Methods for Integrated Claim Modal ---
+  openClaimModal(policy: Policy): void {
+    this.selectedPolicyForClaim = policy;
+    this.claimForm.patchValue({ policyNumber: policy.policyNumber });
+    this.showClaimModal = true;
+  }
+
+  closeClaimModal(): void {
+    this.showClaimModal = false;
+    this.selectedPolicyForClaim = null;
+    this.claimForm.reset();
+  }
+
+  onClaimFormSubmit(): void {
+    if (this.claimForm.invalid) {
+      this.claimForm.markAllAsTouched();
+      this.snackBar.open(`Please fill all required fields to submit the claim.`, 'Close', {
+        duration: 5000,
+        panelClass: 'fidelity-toast-panel'
+      });
+      return;
+    }
+
+    const claimData = this.claimForm.getRawValue();
+    const newClaim: Claim = {
+      id: `CLM${Date.now()}`,
+      policyNumber: claimData.policyNumber,
+      title: this.selectedPolicyForClaim?.title || 'New Claim',
+      status: 'Pending Review',
+      claimDate: new Date(),
+    };
+
+    this.claims.unshift(newClaim);
+
+    this.addActivityLog({
+      id: `A${Date.now()}`,
+      title: 'Claim Submitted',
+      description: `Claim for policy ${newClaim.policyNumber} is now under review.`,
+      timestamp: new Date(),
+      icon: 'gavel',
+      iconColor: '#f59e0b' // amber-500
+    });
+    
+    this.loadDashboardData();
+    this.setupNavigationBasedOnRole();
+    this.closeClaimModal();
+
+    this.snackBar.open(`Your claim for policy ${newClaim.policyNumber} has been submitted successfully.`, 'OK', {
+      duration: 7000,
+      panelClass: 'fidelity-toast-panel'
+    });
+  }
+  
+  isFieldInvalid(form: FormGroup, field: string): boolean {
+    const control = form.get(field);
+    return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  getErrorMessage(form: FormGroup, field: string): string {
+    const control = form.get(field);
+    if (!control || !control.errors) return '';
+    if (control.hasError('required')) return 'This field is required.';
+    if (control.hasError('min')) return `The minimum value is ${control.errors['min'].min}.`;
+    if (control.hasError('minLength')) return `Must be at least ${control.errors['minLength'].requiredLength} characters.`;
+    return 'Invalid input.';
+  }
+
+  // --- Other existing component methods ---
   loadAllPendingQuotes(): void {
     const rawTravelQuotes = JSON.parse(localStorage.getItem(TRAVEL_QUOTES_KEY) || '[]');
     const mappedTravelQuotes: Quote[] = rawTravelQuotes.map((q: any) => ({
@@ -85,7 +173,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         quoteDetails: q
     }));
 
-    // For Marine, we will assume a storage key and map its data
     const rawMarineQuotes = JSON.parse(localStorage.getItem(MARINE_QUOTES_KEY) || '[]');
     const mappedMarineQuotes: Quote[] = rawMarineQuotes.map((q: any) => ({
         id: q.id, type: 'marine', title: `Marine - ${q.quoteDetails.marineCargoType}`,
@@ -171,6 +258,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getUnreadNotificationCount(): number { return this.notifications.filter((n) => !n.read).length; }
   toggleNavItem(item: NavigationItem): void { if (item.children) item.isExpanded = !item.isExpanded; }
   toggleMobileSidebar(): void { this.isMobileSidebarOpen = !this.isMobileSidebarOpen; }
+  getToday(): string { return new Date().toISOString().split('T')[0]; }
   editQuoteByType(quoteId: string, type: 'marine' | 'travel' | 'golfers'): void { }
   downloadCertificate(policyId: string): void { }
   

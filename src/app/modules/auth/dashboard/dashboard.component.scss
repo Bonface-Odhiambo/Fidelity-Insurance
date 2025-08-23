@@ -2,23 +2,22 @@
 $fidelity-turquoise: #037B7C;
 $fidelity-lime: #B8D87A;
 $fidelity-white: #ffffff;
-$fidelity-dark-text: #1f2937; // Tailwind gray-800
-$fidelity-medium-text: #6b7280; // Tailwind gray-500
-$fidelity-light-gray: #f9fafb; // Tailwind gray-50
-$fidelity-border-gray: #e5e7eb; // Tailwind gray-200
+$fidelity-dark-text: #1f2937;
+$fidelity-medium-text: #6b7280;
+$fidelity-light-gray: #f9fafb;
+$fidelity-border-gray: #e5e7eb;
 
 // --- UTILITY CLASSES ---
+.sidebar-bg { background-color: $fidelity-turquoise !important; }
 .bg-fidelity-turquoise { background-color: $fidelity-turquoise !important; }
 .bg-fidelity-lime { background-color: $fidelity-lime !important; }
 .text-fidelity-turquoise { color: $fidelity-turquoise !important; }
 .text-fidelity-dark-text { color: $fidelity-dark-text !important; }
+.bg-fidelity-turquoise\/10 { background-color: rgba($fidelity-turquoise, 0.1); }
+.hover\:file\:bg-fidelity-turquoise\/20:hover { background-color: rgba($fidelity-turquoise, 0.2); }
+.file\:text-fidelity-turquoise { color: $fidelity-turquoise; }
 
 // --- COMPONENT STYLES ---
-
-.sidebar-bg {
-  background-color: $fidelity-turquoise;
-}
-
 .nav-menu-item {
   .sidebar-nav-icon {
     color: rgba($fidelity-white, 0.7);
@@ -38,7 +37,6 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   font-weight: 600;
 }
 
-/* NEW: Style for child icons in the "New Quote" dropdown */
 .nav-menu-item + div a .sidebar-nav-icon {
   color: $fidelity-lime !important;
   opacity: 0.9;
@@ -123,6 +121,7 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
   word-break: break-word;
 }
 
+// --- GLOBAL & TOAST STYLES ---
 ::ng-deep .fidelity-toast-panel {
   --mdc-snackbar-container-color: #{$fidelity-dark-text};
   --mdc-snackbar-supporting-text-color: #{$fidelity-white};
@@ -141,4 +140,41 @@ $fidelity-border-gray: #e5e7eb; // Tailwind gray-200
         background: transparent !important;
         box-shadow: none !important;
     }
+}
+
+// --- INTEGRATED CLAIM MODAL STYLES & ANIMS  ---
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scaleUp {
+  animation: scaleUp 0.3s ease-out forwards;
+}
+
+.btn-primary {
+  background-color: $fidelity-turquoise;
+  color: $fidelity-white;
+  &:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  &:hover:not(:disabled) {
+    background-color: $fidelity-lime;
+    color: $fidelity-dark-text;
+  }
+}
+
+.focus-ring-primary:focus {
+  outline: none;
+  border-color: #037B7C;
+  box-shadow: 0 0 0 3px rgba(3, 123, 124, 0.2);
 }
