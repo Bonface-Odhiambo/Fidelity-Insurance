@@ -16,6 +16,12 @@ export const appRoutes: Route[] = [
         loadChildren: () => import('app/modules/auth/golfers-quote/golfers-quote.routes').then(m => m.routes),
     },
 
+    // Top-level route for personal-accident-quote
+    {
+        path: 'personal-accident-quote',
+        loadChildren: () => import('app/modules/auth/personal-accident-quote/personal-accident-quote.routes').then(m => m.routes),
+    },
+
     // NEW PARENT ROUTE FOR SIGN-UP to handle children like personal-accident
     {
         path: 'sign-up',

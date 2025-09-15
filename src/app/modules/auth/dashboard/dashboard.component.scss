@@ -7,6 +7,12 @@ $fidelity-medium-text: #6b7280;
 $fidelity-light-gray: #f9fafb;
 $fidelity-border-gray: #e5e7eb;
 
+// Dashboard responsive layout variables
+$sidebar-width: 16rem; // 256px
+$mobile-breakpoint: 1024px;
+$tablet-breakpoint: 768px;
+$mobile-small-breakpoint: 480px;
+
 // --- UTILITY CLASSES ---
 .sidebar-bg { background-color: $fidelity-turquoise !important; }
 .bg-fidelity-turquoise { background-color: $fidelity-turquoise !important; }
@@ -29,6 +35,25 @@ $fidelity-border-gray: #e5e7eb;
       color: $fidelity-white;
     }
   }
+  
+  // Responsive text sizing for navigation items
+  span {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    
+    @media (min-width: $tablet-breakpoint) {
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+    
+    @media (min-width: $mobile-breakpoint) {
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+  }
 }
 
 .nav-menu-item.active-menu-item {
@@ -37,12 +62,34 @@ $fidelity-border-gray: #e5e7eb;
   font-weight: 600;
 }
 
-.nav-menu-item + div a .sidebar-nav-icon {
-  color: $fidelity-lime !important;
-  opacity: 0.9;
-}
-.nav-menu-item + div a:hover .sidebar-nav-icon {
-  opacity: 1;
+// Submenu items (children) responsive styling
+.nav-menu-item + div a {
+  .sidebar-nav-icon {
+    color: $fidelity-lime !important;
+    opacity: 0.9;
+  }
+  
+  span {
+    font-size: 0.7rem;
+    line-height: 1.1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    
+    @media (min-width: $tablet-breakpoint) {
+      font-size: 0.8rem;
+      line-height: 1.2;
+    }
+    
+    @media (min-width: $mobile-breakpoint) {
+      font-size: 0.875rem;
+      line-height: 1.3;
+    }
+  }
+  
+  &:hover .sidebar-nav-icon {
+    opacity: 1;
+  }
 }
 
 .stats-card {
@@ -177,4 +224,412 @@ $fidelity-border-gray: #e5e7eb;
   outline: none;
   border-color: #037B7C;
   box-shadow: 0 0 0 3px rgba(3, 123, 124, 0.2);
+}
+
+// Dashboard responsive layout styles
+.dashboard-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background-color: $fidelity-light-gray;
+}
+
+// Sidebar responsive styles
+.dashboard-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: $sidebar-width;
+  z-index: 50;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  background-color: $fidelity-turquoise;
+  color: $fidelity-white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  
+  @media (min-width: $mobile-breakpoint) {
+    position: relative;
+    transform: translateX(0);
+    flex-shrink: 0;
+  }
+  
+  &.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+// Main content responsive styles
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; // Prevent flex item from overflowing
+  
+  @media (min-width: $mobile-breakpoint) {
+    margin-left: 0;
+  }
+}
+
+// Header responsive styles
+.dashboard-header {
+  background-color: $fidelity-white;
+  border-bottom: 1px solid $fidelity-border-gray;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  
+  @media (min-width: $tablet-breakpoint) {
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 100%;
+  }
+  
+  .header-title {
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $fidelity-turquoise;
+      margin: 0;
+      
+      @media (min-width: $tablet-breakpoint) {
+        font-size: 1.5rem;
+      }
+    }
+    
+    p {
+      font-size: 0.875rem;
+      color: $fidelity-medium-text;
+      margin: 0.25rem 0 0 0;
+      
+      @media (max-width: $mobile-small-breakpoint) {
+        display: none;
+      }
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+}
+
+// Content area responsive styles
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  
+  @media (min-width: $tablet-breakpoint) {
+    padding: 1.5rem;
+  }
+  
+  @media (min-width: $mobile-breakpoint) {
+    padding: 2rem;
+  }
+}
+
+// Stats cards responsive grid
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  
+  @media (min-width: $mobile-small-breakpoint) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: $tablet-breakpoint) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: $mobile-breakpoint) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Main content grid responsive
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  
+  @media (min-width: $mobile-breakpoint) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+// Quotes grid responsive
+.quotes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  
+  @media (min-width: $tablet-breakpoint) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: $mobile-breakpoint) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Quote card responsive
+.quote-card {
+  background-color: $fidelity-white;
+  border-radius: 0.75rem;
+  border: 1px solid $fidelity-border-gray;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .quote-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    
+    @media (max-width: $mobile-small-breakpoint) {
+      flex-direction: column;
+    }
+    
+    button {
+      flex: 1;
+      
+      @media (max-width: $mobile-small-breakpoint) {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Policy card responsive
+.policy-card {
+  background-color: $fidelity-white;
+  border-radius: 0.75rem;
+  border: 1px solid $fidelity-border-gray;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .policy-header {
+    padding: 1rem;
+    cursor: pointer;
+    
+    @media (min-width: $tablet-breakpoint) {
+      padding: 1.5rem;
+    }
+  }
+  
+  .policy-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    
+    @media (max-width: $mobile-small-breakpoint) {
+      flex-direction: column;
+    }
+    
+    button {
+      @media (max-width: $mobile-small-breakpoint) {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Mobile backdrop
+.mobile-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 40;
+  
+  @media (min-width: $mobile-breakpoint) {
+    display: none;
+  }
+}
+
+// Responsive text sizes
+.responsive-text {
+  &.title {
+    font-size: 1.25rem;
+    
+    @media (min-width: $tablet-breakpoint) {
+      font-size: 1.5rem;
+    }
+    
+    @media (min-width: $mobile-breakpoint) {
+      font-size: 1.875rem;
+    }
+  }
+  
+  &.subtitle {
+    font-size: 0.875rem;
+    
+    @media (min-width: $tablet-breakpoint) {
+      font-size: 1rem;
+    }
+  }
+}
+
+// Responsive spacing
+.responsive-spacing {
+  &.section {
+    margin-bottom: 1.5rem;
+    
+    @media (min-width: $tablet-breakpoint) {
+      margin-bottom: 2rem;
+    }
+  }
+  
+  &.card {
+    padding: 1rem;
+    
+    @media (min-width: $tablet-breakpoint) {
+      padding: 1.5rem;
+    }
+  }
+}
+
+// Quick actions responsive
+.quick-actions {
+  .action-button {
+    width: 100% !important;
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.5rem !important;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.7rem !important;
+    line-height: 1.1 !important;
+    min-height: 3rem;
+    max-height: 4rem;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto;
+    white-space: normal !important;
+    overflow: hidden;
+    
+    // Override Material Design button styles
+    &.mat-mdc-raised-button {
+      font-size: 0.7rem !important;
+      line-height: 1.1 !important;
+      padding: 0.75rem 0.5rem !important;
+      min-width: auto !important;
+      
+      .mdc-button__label {
+        font-size: inherit !important;
+        line-height: inherit !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+    }
+    
+    @media (min-width: $mobile-small-breakpoint) {
+      font-size: 0.75rem !important;
+      padding: 0.875rem 0.75rem !important;
+      min-height: 3.25rem;
+      
+      &.mat-mdc-raised-button {
+        font-size: 0.75rem !important;
+        padding: 0.875rem 0.75rem !important;
+      }
+    }
+    
+    @media (min-width: $tablet-breakpoint) {
+      padding: 1rem !important;
+      font-size: 0.8rem !important;
+      line-height: 1.2 !important;
+      min-height: 3.5rem;
+      
+      &.mat-mdc-raised-button {
+        font-size: 0.8rem !important;
+        line-height: 1.2 !important;
+        padding: 1rem !important;
+      }
+    }
+    
+    @media (min-width: $mobile-breakpoint) {
+      font-size: 0.875rem !important;
+      line-height: 1.3 !important;
+      min-height: 4rem;
+      
+      &.mat-mdc-raised-button {
+        font-size: 0.875rem !important;
+        line-height: 1.3 !important;
+      }
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Activity feed responsive
+.activity-feed {
+  max-height: 20rem;
+  overflow-y: auto;
+  
+  @media (min-width: $tablet-breakpoint) {
+    max-height: 24rem;
+  }
+  
+  .activity-item {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: $fidelity-light-gray;
+    }
+    
+    @media (min-width: $tablet-breakpoint) {
+      padding: 1rem;
+    }
+  }
+}
+
+// Ensure content doesn't overflow on small screens
+.overflow-safe {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+// Hide elements on mobile when needed
+.hide-mobile {
+  @media (max-width: #{$mobile-breakpoint - 1px}) {
+    display: none !important;
+  }
+}
+
+// Show only on mobile
+.show-mobile {
+  @media (min-width: $mobile-breakpoint) {
+    display: none !important;
+  }
 }
