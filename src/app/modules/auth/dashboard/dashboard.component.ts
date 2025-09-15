@@ -13,6 +13,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { MpesaPaymentModalComponent, PaymentResult } from '../shared/components/payment-modal.component';
+import { QuoteStorageService, PersonalAccidentQuote } from '../../../core/services/quote-storage.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 // --- CONSTANTS FOR LOCAL STORAGE KEYS ---
 const TRAVEL_QUOTES_KEY = 'fidelity_pending_quotes';
@@ -22,11 +24,11 @@ const MARINE_QUOTES_KEY = 'fidelity_pending_marine_quotes';
 // --- TYPE DEFINITIONS ---
 type UserRole = 'individual' | 'corporate' | 'intermediary';
 interface User { id: string; name: string; email: string; phoneNumber: string; role: UserRole; }
-interface Quote { id: string; type: 'marine' | 'travel' | 'golfers'; title: string; amount: number; expiryDate: Date; description: string; quoteDetails: any; }
+interface Quote { id: string; type: 'marine' | 'travel' | 'golfers' | 'personal-accident'; title: string; amount: number; expiryDate: Date; description: string; quoteDetails: any; }
 interface Claim { id: string; policyNumber: string; title: string; status: 'Pending Review' | 'Approved' | 'Rejected'; claimDate: Date; }
 interface Policy {
-  id: string; type: 'marine' | 'travel' | 'golfers'; title: string; policyNumber: string; status: 'active'; premium: number; startDate: Date; endDate: Date; certificateUrl?: string;
-  marineDetails?: any; golfersDetails?: any; travelDetails?: any;
+  id: string; type: 'marine' | 'travel' | 'golfers' | 'personal-accident'; title: string; policyNumber: string; status: 'active'; premium: number; startDate: Date; endDate: Date; certificateUrl?: string;
+  marineDetails?: any; golfersDetails?: any; travelDetails?: any; personalAccidentDetails?: any;
 }
 interface DashboardStats { activePolicies: number; pendingQuotes: number; openClaims: number; totalPremium: number; }
 interface MpesaPayment { amount: number; phoneNumber: string; reference: string; description: string; }
@@ -63,7 +65,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dialog: MatDialog, 
     public router: Router, 
     private snackBar: MatSnackBar,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private quoteStorageService: QuoteStorageService,
+    private authService: AuthService
   ) {
     this.claimForm = this.fb.group({
       policyNumber: [{ value: '', disabled: true }],
@@ -205,7 +209,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
         quoteDetails: q
     }));
 
-    this.pendingQuotes = [...mappedTravelQuotes, ...mappedGolfersQuotes, ...mappedMarineQuotes];
+    // Load Personal Accident quotes from the new service
+    const personalAccidentQuotes = this.quoteStorageService.quotes
+      .filter(q => q.status === 'quoted')
+      .map((q: PersonalAccidentQuote): Quote => ({
+        id: q.id,
+        type: 'personal-accident',
+        title: `Personal Accident - Option ${q.coverOption}`,
+        amount: q.calculatedPremium,
+        expiryDate: new Date(q.timestamp + 14 * 24 * 60 * 60 * 1000),
+        description: `${q.formData.personalDetails.firstName} ${q.formData.personalDetails.surname} - ${q.ageRange}`,
+        quoteDetails: q
+      }));
+
+    this.pendingQuotes = [...mappedTravelQuotes, ...mappedGolfersQuotes, ...mappedMarineQuotes, ...personalAccidentQuotes];
   }
   
   initiatePayment(quoteId: string): void {
@@ -217,6 +234,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         case 'travel': phoneNumber = quote.quoteDetails.travelerDetails.phoneNumber; break;
         case 'golfers': phoneNumber = quote.quoteDetails.formData.phoneNumber; break;
         case 'marine': phoneNumber = quote.quoteDetails.quoteDetails.phoneNumber; break;
+        case 'personal-accident': phoneNumber = quote.quoteDetails.formData.personalDetails.mobileNumber; break;
         default: phoneNumber = this.user.phoneNumber;
     }
     
@@ -258,13 +276,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
             };
             storageKeyToRemove = TRAVEL_QUOTES_KEY;
             break;
+        case 'personal-accident':
+            newPolicy.personalAccidentDetails = {
+                ...quote.quoteDetails.formData,
+                coverOption: quote.quoteDetails.coverOption,
+                ageRange: quote.quoteDetails.ageRange
+            };
+            // Update quote status in the service instead of removing from localStorage
+            this.quoteStorageService.updateQuote(quote.id, { 
+                status: 'paid',
+                paymentInfo: {
+                    method: 'stk', // This would come from the payment result
+                    reference: quote.id,
+                    paidAt: Date.now()
+                }
+            });
+            storageKeyToRemove = ''; // No storage key to remove for personal accident
+            break;
     }
 
     this.activePolicies.unshift(newPolicy);
 
-    const allQuotesFromStorage = JSON.parse(localStorage.getItem(storageKeyToRemove) || '[]');
-    const updatedQuotes = allQuotesFromStorage.filter((q: any) => q.id !== quote.id);
-    localStorage.setItem(storageKeyToRemove, JSON.stringify(updatedQuotes));
+    // Only remove from localStorage for non-personal-accident quotes
+    if (storageKeyToRemove) {
+        const allQuotesFromStorage = JSON.parse(localStorage.getItem(storageKeyToRemove) || '[]');
+        const updatedQuotes = allQuotesFromStorage.filter((q: any) => q.id !== quote.id);
+        localStorage.setItem(storageKeyToRemove, JSON.stringify(updatedQuotes));
+    }
 
     this.addActivityLog({ id: `A${Date.now()}`, title: 'Payment Successful', description: `Policy Activated: ${newPolicy.policyNumber}`, timestamp: new Date(), icon: 'check_circle', iconColor: '#037B7C' });
     this.loadAllPendingQuotes();
@@ -291,7 +329,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       { label: 'New Quote', icon: 'add_circle', isExpanded: true, children: [ 
         { label: 'Marine Insurance', route: '/marine-quote', icon: 'directions_boat' },
         { label: 'Travel Insurance', route: '/travel-quote', icon: 'flight' }, 
-        { label: 'Golfers Insurance', route: '/golfers-quote', icon: 'golf_course' } 
+        { label: 'Golfers Insurance', route: '/golfers-quote', icon: 'golf_course' },
+        { label: 'Personal Accident', route: '/sign-up/personal-accident-quote', icon: 'personal_injury' }
       ]},
       { label: 'My Policies', icon: 'shield', route: '/policies' },
       { label: 'Claims', icon: 'gavel', route: '/claims', badge: this.claims.filter(c => c.status === 'Pending Review').length },

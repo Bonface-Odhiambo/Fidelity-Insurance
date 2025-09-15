@@ -1,30 +1,19 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  ChangeDetectionStrategy,
-  inject,
-  ChangeDetectorRef,
-  OnDestroy, // <-- Ensure OnDestroy is imported
-} from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-  AbstractControl,
-} from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-
-// Angular Material Modules
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-
-// Fuse UI components (assuming you have these)
+import { Router, RouterModule } from '@angular/router';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { Subject, takeUntil } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { MpesaPaymentModalComponent, PaymentResult } from '../shared/components/payment-modal.component';
+import { QuoteSummaryModalComponent } from './quote-summary-modal.component';
+import { AuthService } from '../../../core/services/auth.service';
+import { QuoteStorageService } from '../../../core/services/quote-storage.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'personal-accident-quote',
@@ -40,14 +29,18 @@ import { Subject, takeUntil } from 'rxjs';
     FuseAlertComponent,
     CurrencyPipe // For formatting currency in HTML
   ],
-  templateUrl: './personal-accident-quote.component.html',
-  styleUrls: ['./personal-accident-quote.scss'],
+  templateUrl: './personal-accident-quote.html',
+  styleUrl: './personal-accident-quote.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonalAccidentQuoteComponent implements OnInit, OnDestroy { // <-- Implement OnDestroy
   private _formBuilder = inject(FormBuilder);
   private _router = inject(Router);
   private _cd = inject(ChangeDetectorRef);
+  private _dialog = inject(MatDialog);
+  private _authService = inject(AuthService);
+  private _quoteStorageService = inject(QuoteStorageService);
+  private _toastService = inject(ToastService);
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
   personalAccidentForm!: FormGroup;
@@ -261,23 +254,106 @@ export class PersonalAccidentQuoteComponent implements OnInit, OnDestroy { // <-
       return;
     }
 
-    this.personalAccidentForm.disable(); // Disable form during submission
+    if (!this.calculatedPremium) {
+      this.triggerAlert('error', 'Please select a cover option and age range to calculate premium.', 'inline');
+      return;
+    }
 
-    // Simulate API call
+    // Show quote summary modal instead of payment modal
+    this.showQuoteSummary();
+  }
+
+  private showQuoteSummary(): void {
+    const formData = this.personalAccidentForm.getRawValue();
+    const reference = this.generateQuoteReference();
+    const selectedCover = this.coverOptions.find(opt => opt.id === formData.coverOption);
+    
+    if (!selectedCover) {
+      this.triggerAlert('error', 'Invalid cover option selected.', 'inline');
+      return;
+    }
+
+    const dialogRef = this._dialog.open(QuoteSummaryModalComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: {
+        formData: formData,
+        coverOption: selectedCover,
+        ageRange: formData.ageRange,
+        calculatedPremium: this.calculatedPremium,
+        benefits: this.benefits,
+        reference: reference
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.action === 'payment') {
+        // User clicked "Proceed to Payment" and is authenticated
+        this.openPaymentModal(result.quoteData);
+      } else if (result?.action === 'redirect') {
+        // User was redirected to homepage for login
+        // Toast message already shown in the modal
+      }
+      // If action is 'edit', user just closes modal to edit the form
+    });
+  }
+
+  private openPaymentModal(quoteData?: any): void {
+    const formData = quoteData?.formData || this.personalAccidentForm.getRawValue();
+    const reference = quoteData?.reference || this.generateQuoteReference();
+    
+    const dialogRef = this._dialog.open(MpesaPaymentModalComponent, {
+      width: '450px',
+      maxWidth: '90vw',
+      disableClose: true,
+      data: {
+        amount: this.calculatedPremium,
+        phoneNumber: formData.personalDetails.mobileNumber,
+        reference: reference,
+        description: 'Personal Accident Insurance Premium'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: PaymentResult | null) => {
+      if (result && result.success) {
+        this.handlePaymentSuccess(result, reference);
+      } else {
+        this.triggerAlert('info', 'Payment was cancelled. You can try again anytime.', 'inline');
+      }
+    });
+  }
+
+  private generateQuoteReference(): string {
+    const timestamp = Date.now().toString();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `PA${timestamp.slice(-6)}${random}`;
+  }
+
+  private handlePaymentSuccess(result: PaymentResult, reference: string): void {
+    // Here you would typically send the form data and payment info to your backend
+    const formData = this.personalAccidentForm.getRawValue();
+    
+    console.log('Personal Accident Quote Form Submitted:', formData);
+    console.log('Payment Result:', result);
+    console.log('Quote Reference:', reference);
+    console.log('Premium Paid:', this.calculatedPremium);
+
+    // Show success message
+    let successMessage = `Payment successful! Your Personal Accident Insurance quote has been processed.`;
+    
+    if (result.method === 'stk' && result.mpesaReceipt) {
+      successMessage += ` M-PESA Receipt: ${result.mpesaReceipt}`;
+    }
+    
+    successMessage += ` Quote Reference: ${reference}`;
+
+    this.triggerAlert('success', successMessage, 'inline');
+
+    // Reset form for new quote
     setTimeout(() => {
-      // Here you would typically send the form data to your backend
-      console.log('Personal Accident Quote Form Submitted:', this.personalAccidentForm.getRawValue());
-      console.log('Calculated Premium:', this.calculatedPremium);
-
-      this.triggerAlert('success', 'Your Personal Accident quote request has been submitted. We will contact you shortly.', 'inline');
-
-      // Optionally, redirect or show a success screen
-      // this._router.navigate(['/quote-confirmation']);
-
-      this.personalAccidentForm.enable(); // Re-enable form after submission
-      this.resetForm(); // Reset for a new quote
-      this._cd.markForCheck();
-    }, 2000);
+      this.resetForm();
+    }, 3000);
   }
 
   resetForm(): void {

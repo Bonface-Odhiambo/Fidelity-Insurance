@@ -26,8 +26,8 @@ export const appRoutes: Route[] = [
                 loadChildren: () => import('app/modules/auth/home/sign-up.routes'),
             },
             {
-                // This path handles 'sign-up/personal-accident'
-                path: 'personal-accident',
+                // This path handles 'sign-up/personal-accident-quote'
+                path: 'personal-accident-quote',
                 loadChildren: () => import('app/modules/auth/personal-accident-quote/personal-accident-quote.routes').then(m => m.routes),
             },
             // You can add other child routes like 'sign-up/marine' here in the future
