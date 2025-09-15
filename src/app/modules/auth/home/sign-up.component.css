@@ -81,7 +81,8 @@
 }
 
 .quote-cards {
-  margin-top: 2.5rem;
+  /* Adjusted margin-top to move the cards higher */
+  margin-top: 1rem; /* Was 2.5rem */
   width: 100%;
   text-align: left;
   display: flex;

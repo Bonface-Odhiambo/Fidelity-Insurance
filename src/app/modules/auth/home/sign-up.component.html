@@ -40,14 +40,22 @@
             <h3>Marine Insurance</h3>
             <p>Protect your vessels & cargo.</p>
           </div>
-          <a href="sign-up/marine-quote" class="cursor-pointer">Get Quote</a>
+          <a href="sign-up/marine-quote" class="cursor-pointer" (click)="navigateToMarineQuote()">Get Quote</a>
         </div>
         <div class="quote-card-item">
           <div>
             <h3>Travel Insurance</h3>
             <p>Comprehensive travel coverage.</p>
           </div>
-          <a href="sign-up/travel-quote" class="cursor-pointer">Get Quote</a>
+          <a href="sign-up/travel-quote" class="cursor-pointer" (click)="navigateToTravelQuote()">Get Quote</a>
+        </div>
+        <!-- NEW: Personal Accident Quote Card -->
+        <div class="quote-card-item">
+          <div>
+            <h3>Personal Accident</h3>
+            <p>Protection in case of unforeseen accidents.</p>
+          </div>
+          <a href="sign-up/personal-accident-quote" class="cursor-pointer" (click)="navigateToPersonalAccidentQuote()">Get Quote</a>
         </div>
       </div>
     </div>

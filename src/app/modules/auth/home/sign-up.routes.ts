@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from '../dashboard/dashboard.component';
 import { GolfersQuoteComponent } from '../golfers-quote/golfers-quote.component';
-import { MarineGuardProComponent } from '../marine-guard-pro/marine-guard-pro.component';
 import { TravelQuoteComponent } from '../travel-quote/travel-quote.component';
+import { PersonalAccidentQuoteComponent } from '../personal-accident-quote/personal-accident-quote.component';
 // CORRECTED: Import the component from its actual file
 import { MarineCargoQuotationComponent } from '../user-registration/user-registration.component';
 
@@ -13,6 +13,11 @@ import { FidelityAuthSignUpComponent } from './sign-up.component'; // Assuming t
 // If it's a different component, you need to import it from its correct file.
 
 export default [
+    {
+    path: 'personal-accident-quote',
+    component: PersonalAccidentQuoteComponent
+
+    },
     {
         path: '', // The base path for this module should be the sign-up form
         component: FidelityAuthSignUpComponent,
@@ -33,8 +38,5 @@ export default [
         path: 'travel-quote',
         component: TravelQuoteComponent,
     },
-    {
-        path: 'marine-guard-pro',
-        component: MarineGuardProComponent,
-    },
+    
 ] as Routes;

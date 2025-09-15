@@ -1,8 +1,0 @@
-/* Additional custom styles if needed */
-.feature-card {
-  transition: transform 0.2s ease-in-out;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-}

@@ -1,0 +1,305 @@
+<div class="pa-container">
+  <div class="pa-header">
+    <div class="pa-header-left">
+      <h2>PERSONAL ACCIDENT INSURANCE</h2>
+      <h1>PROPOSAL FORM</h1>
+    </div>
+    <div class="pa-header-right">
+      <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGK4ya3Y0V4Iw/company-logo_200_200/company-logo_200_200/0/1631336758836?e=2147483647&v=beta&t=qRDfOKgxDnq46pE6Pv8nqRhBsJE-Qsz2AIfP0NssBzY" alt="Fidelity Insurance Logo" class="pa-logo" />
+    </div>
+  </div>
+
+  <!-- Alert for form validation or submission feedback -->
+  <div class="pa-alert-container" *ngIf="showAlert">
+    <fuse-alert
+      [appearance]="'outline'"
+      [showIcon]="true"
+      [type]="alert.type">
+      {{ alert.message }}
+    </fuse-alert>
+  </div>
+
+  <form [formGroup]="personalAccidentForm" (ngSubmit)="getQuote()">
+    <div class="form-section">
+      <h3>THE FOLLOWING QUESTIONS MUST BE ANSWERED IN FULL</h3>
+
+      <!-- Personal Details -->
+      <div formGroupName="personalDetails" class="form-group-grid">
+        <div class="form-group">
+          <label>1. Surname</label>
+          <input type="text" formControlName="surname" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" formControlName="firstName" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input type="text" formControlName="middleName" class="form-input">
+        </div>
+        <div class="form-group-full">
+          <label>2. Address</label>
+          <input type="text" formControlName="address" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode" class="form-input">
+        </div>
+        <div class="form-group-full">
+          <label>3. E-mail</label>
+          <input type="email" formControlName="email" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" formControlName="mobileNumber" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>4. Age last Birthday</label>
+          <input type="number" formControlName="ageLastBirthday" class="form-input" min="18" max="70">
+        </div>
+        <div class="form-group">
+          <label>Passport No./ID No</label>
+          <input type="text" formControlName="passportIdNo" class="form-input">
+        </div>
+      </div>
+
+      <!-- Beneficiary Details -->
+      <div formGroupName="beneficiaryDetails" class="form-group-grid">
+        <div class="form-group-full">
+          <label>5. Beneficiary i.e. (the person to whom claim would be payable in case of death of the insured person)</label>
+        </div>
+        <div class="form-group">
+          <label>6. Name(s)</label>
+          <input type="text" formControlName="beneficiaryName" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Relationship</label>
+          <input type="text" formControlName="beneficiaryRelationship" class="form-input">
+        </div>
+      </div>
+
+      <!-- Period of Insurance -->
+      <div formGroupName="periodOfInsurance" class="form-group-grid">
+        <div class="form-group-full">
+          <label>7. Period of Insurance:</label>
+          <div class="flex space-x-4">
+            <label>From</label>
+            <input type="date" formControlName="fromDate" class="form-input w-auto">
+            <label>To</label>
+            <input type="date" formControlName="toDate" class="form-input w-auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- Occupation -->
+      <div class="form-group">
+        <label>8. Please tick the description that applies to your occupation:</label>
+        <mat-radio-group formControlName="occupationClass" class="pa-radio-group">
+          <mat-radio-button value="class1">a. Clerical or Administration inside the office (Class I)</mat-radio-button>
+          <mat-radio-button value="class2">b. Outdoor work/job (Class II)</mat-radio-button>
+          <mat-radio-button value="class3">c. Manual Work (Class III)</mat-radio-button>
+          <mat-radio-button value="class4">d. Working with machinery (Class IV)</mat-radio-button>
+          <mat-radio-button value="anyOther">e. Any other not shown above.</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <!-- Hazardous Activities -->
+      <div class="form-group">
+        <label>9. Do you engage in any hazardous activities or pursuits?</label>
+        <mat-radio-group formControlName="hazardousActivities" class="pa-radio-group-inline">
+          <mat-radio-button [value]="true">Yes</mat-radio-button>
+          <mat-radio-button [value]="false">No</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <!-- Sustained Injury -->
+      <div class="form-group">
+        <label>10. Have you sustained injury by accidents during the last five years?</label>
+        <mat-radio-group formControlName="sustainedInjury" class="pa-radio-group-inline">
+          <mat-radio-button [value]="true">Yes</mat-radio-button>
+          <mat-radio-button [value]="false">No</mat-radio-button>
+        </mat-radio-group>
+        <div *ngIf="personalAccidentForm.get('sustainedInjury')?.value" class="mt-2">
+          <label>If so, give dates, nature of injury(ies) and period(s) of disablement</label>
+          <textarea formControlName="injuryDetails" class="form-input"></textarea>
+        </div>
+      </div>
+
+      <!-- Insurer Declined -->
+      <div class="form-group">
+        <label>11. Has any Insurer declined or imposed special terms for life or accident or illness policy or declined to renew or cancelled the policy?</label>
+        <mat-radio-group formControlName="insurerDeclined" class="pa-radio-group-inline">
+          <mat-radio-button [value]="true">Yes</mat-radio-button>
+          <mat-radio-button [value]="false">No</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <!-- Physical/Mental Illness -->
+      <div class="form-group">
+        <label>12. Are you free from physical disability or mental illness to the best of your knowledge?</label>
+        <mat-radio-group formControlName="freeFromIllness" class="pa-radio-group-inline">
+          <mat-radio-button [value]="true">Yes</mat-radio-button>
+          <mat-radio-button [value]="false">No</mat-radio-button>
+        </mat-radio-group>
+        <div *ngIf="!personalAccidentForm.get('freeFromIllness')?.value" class="mt-2">
+          <label>If No, please give details</label>
+          <textarea formControlName="illnessDetails" class="form-input"></textarea>
+        </div>
+      </div>
+
+      <!-- Excluded Activities -->
+      <div class="form-group">
+        <label>13. Are you engaged in any of the excluded activities/occupations mentioned below?</label>
+        <mat-radio-group formControlName="engagedInExcludedActivities" class="pa-radio-group-inline">
+          <mat-radio-button [value]="true">Yes</mat-radio-button>
+          <mat-radio-button [value]="false">No</mat-radio-button>
+        </mat-radio-group>
+        <ul class="list-disc ml-6 mt-2 text-sm text-gray-700">
+          <li>1. Hunting</li>
+          <li>2. Steele chasing</li>
+          <li>3. Sinking of air, water, or gas wells</li>
+          <li>4. Construction and maintenance of dams</li>
+          <li>5. Airline crew & ship or boat crew</li>
+          <li>6. Racing, Rallies and speed testing</li>
+          <li>7. Naval, military, police or Air force operations</li>
+          <li>8. Professional sports</li>
+          <li>9. Diving</li>
+          <li>10. Mining</li>
+        </ul>
+        <div *ngIf="personalAccidentForm.get('engagedInExcludedActivities')?.value" class="mt-4">
+          <label>If yes, would you like an extension of cover (at 25% of the basic premium) while engaged in these activities?</label>
+          <mat-radio-group formControlName="extensionOfCover" class="pa-radio-group-inline">
+            <mat-radio-button [value]="true">Yes</mat-radio-button>
+            <mat-radio-button [value]="false">No</mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </div>
+    </div>
+
+    <!-- COVER SELECTED SECTION -->
+    <div class="form-section">
+      <h3>COVER SELECTED</h3>
+
+      <div class="cover-table-container">
+        <table class="cover-table">
+          <thead>
+            <tr>
+              <th>BENEFIT</th>
+              <ng-container *ngFor="let option of coverOptions; let i = index">
+                <th [ngClass]="{'selected-column': personalAccidentForm.get('coverOption')?.value === option.id}">{{ option.id }}</th>
+              </ng-container>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let benefit of benefits">
+              <td>{{ benefit.name }}</td>
+              <ng-container *ngFor="let option of coverOptions">
+                <td [ngClass]="{'selected-column': personalAccidentForm.get('coverOption')?.value === option.id}">
+                  {{ option[benefit.key] | currency:'KES ':'symbol':'1.0-0' }}
+                </td>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group mt-4">
+        <label>Select Cover Option:</label>
+        <mat-radio-group formControlName="coverOption" class="pa-radio-group-inline">
+          <mat-radio-button *ngFor="let option of coverOptions" [value]="option.id">{{ option.id }}</mat-radio-button>
+        </mat-radio-group>
+        <div *ngIf="personalAccidentForm.get('coverOption')?.touched && personalAccidentForm.get('coverOption')?.invalid" class="text-red-600 text-sm mt-1">
+          Please select a cover option.
+        </div>
+      </div>
+
+      <div class="form-group mt-6">
+        <h3 class="font-bold mb-2">PREMIUM (Ksh)</h3>
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th>Age Range</th>
+              <ng-container *ngFor="let option of coverOptions">
+                <th [ngClass]="{'selected-column': personalAccidentForm.get('coverOption')?.value === option.id}">{{ option.id }}</th>
+              </ng-container>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ageRange of ageRanges">
+              <td>{{ ageRange.label }}</td>
+              <ng-container *ngFor="let option of coverOptions">
+                <td [ngClass]="{'selected-column': personalAccidentForm.get('coverOption')?.value === option.id}">
+                  {{ option.premiums[ageRange.id] | currency:'KES ':'symbol':'1.0-0' }}
+                </td>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group mt-4">
+        <label>Select Age Range:</label>
+        <mat-radio-group formControlName="ageRange" class="pa-radio-group-inline">
+          <mat-radio-button *ngFor="let range of ageRanges" [value]="range.id">{{ range.label }}</mat-radio-button>
+        </mat-radio-group>
+        <div *ngIf="personalAccidentForm.get('ageRange')?.touched && personalAccidentForm.get('ageRange')?.invalid" class="text-red-600 text-sm mt-1">
+          Please select your age range.
+        </div>
+      </div>
+
+      <div class="pa-calculated-premium mt-6" *ngIf="calculatedPremium !== null">
+        <h3 class="text-xl font-bold text-fidelity-turquoise">Calculated Premium: <span class="text-fidelity-dark-text">{{ calculatedPremium | currency:'KES ':'symbol':'1.0-0' }}</span></h3>
+      </div>
+    </div>
+
+
+    <!-- DECLARATION -->
+    <div class="form-section">
+      <h3>DECLARATION</h3>
+      <p class="declaration-text">
+        I warrant that the above statements and particulars are true and agree to give notice to the Company of any
+        alteration in my profession or occupation or health and I hereby agree that this declaration shall be held to be
+        promissory and shall form the basis of the contract between me and Fidelity Shield Insurance Company Limited
+        and I am willing to accept a policy subject to the terms exceptions and conditions prescribed by the Company
+        therein.
+      </p>
+      <p class="declaration-text mt-2">
+        The Liability of the Company does not begin until acceptance of the Proposal BY THE INSURER AND PREMIUM
+        HAS BEEN PAID.
+      </p>
+
+      <div class="form-group-grid mt-6">
+        <div class="form-group">
+          <label>Signature of the Person to be Insured</label>
+          <input type="text" formControlName="signature" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" formControlName="declarationDate" class="form-input">
+        </div>
+      </div>
+
+      <div class="flex items-center mt-6">
+        <mat-checkbox formControlName="agreementAccepted" id="agreement" class="flex-shrink-0"></mat-checkbox>
+        <label for="agreement" class="ml-2 text-gray-700">I confirm that I have read and understood the declaration.</label>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary" [disabled]="personalAccidentForm.invalid || personalAccidentForm.disabled">
+        <div *ngIf="!personalAccidentForm.disabled; else submitting">Get Quote</div>
+        <ng-template #submitting>
+          <mat-progress-spinner [diameter]="20" mode="indeterminate"></mat-progress-spinner>
+          <span>Submitting...</span>
+        </ng-template>
+      </button>
+      <button type="button" class="btn-secondary ml-4" (click)="resetForm()">Reset Form</button>
+    </div>
+  </form>
+
+  <div class="pa-footer">
+    <p>EQUATORIAL FIDELITY CENTRE, OFF WAIYAKI WAY, WESTLANDS P.O.BOX 47435, 00100 NAIROBI, GPO KENYA</p>
+    <p>T +254 (0) 20 4225 000, +254 (0)722 204 967 F +254 20 4445699 E INFO@FIDELITYSHIELD.COM</p>
+  </div>
+</div>

@@ -10,12 +10,28 @@ import { FidelityAuthSignUpComponent } from './modules/auth/home/sign-up.compone
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const appRoutes: Route[] = [
 
-    // THIS IS THE CORRECTED ROUTE
-    // It is a top-level, lazy-loaded route that will render as a full page.
-    // The path now correctly points to its location within the 'auth' module.
+    // Top-level route for golfers-quote (as it was)
     {
         path: 'golfers-quote',
         loadChildren: () => import('app/modules/auth/golfers-quote/golfers-quote.routes').then(m => m.routes),
+    },
+
+    // NEW PARENT ROUTE FOR SIGN-UP to handle children like personal-accident
+    {
+        path: 'sign-up',
+        children: [
+            {
+                // This path handles the base 'sign-up' URL
+                path: '',
+                loadChildren: () => import('app/modules/auth/home/sign-up.routes'),
+            },
+            {
+                // This path handles 'sign-up/personal-accident'
+                path: 'personal-accident',
+                loadChildren: () => import('app/modules/auth/personal-accident-quote/personal-accident-quote.routes').then(m => m.routes),
+            },
+            // You can add other child routes like 'sign-up/marine' here in the future
+        ]
     },
     
     // Root route without layout
@@ -68,11 +84,13 @@ export const appRoutes: Route[] = [
                 path: 'dashboard',
                 component: DashboardComponent,
             },
-            {
-                path: 'sign-up',
-                loadChildren: () =>
-                    import('app/modules/auth/home/sign-up.routes'),
-            },
+            // The 'sign-up' route is now defined as a parent route at the top level,
+            // so we REMOVE the old one from here to avoid conflicts.
+            // {
+            //     path: 'sign-up',
+            //     loadChildren: () =>
+            //         import('app/modules/auth/home/sign-up.routes'),
+            // },
         ],
     },
 

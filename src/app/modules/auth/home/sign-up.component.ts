@@ -204,10 +204,15 @@ export class FidelityAuthSignUpComponent implements OnInit, OnDestroy {
     });
   }
 
+  navigateToPersonalAccidentQuote(): void {
+    this._router.navigate(['/sign-up/personal-accident-quote']);
+  }
+
   navigateToMarineQuote(): void { this.openQuoteModal('marine'); }
   navigateToTravelQuote(): void { this.openQuoteModal('travel'); }
+  // NEW: Personal Accident Quote method
 
-  private openQuoteModal(insuranceType: 'marine' | 'travel'): void {
+  private openQuoteModal(insuranceType: 'marine' | 'travel' | 'personal-accident'): void {
     const dialogRef = this._dialog.open(QuoteModalComponent, {
       width: '500px',
       maxWidth: '90vw',
